@@ -1,5 +1,7 @@
 # Cloudflare Next.js + D1 + R2 Boilerplate
 
+[![GitHub](https://img.shields.io/badge/GitHub-Repository-blue?logo=github)](https://github.com/lilpacy/cloudflare-next-boilerplate)
+
 A production-ready boilerplate for building full-stack applications with Next.js 15 on Cloudflare Workers, featuring D1 (SQLite) database, R2 object storage, and Clerk authentication.
 
 ## Features
@@ -25,8 +27,8 @@ A production-ready boilerplate for building full-stack applications with Next.js
 ### 1. Clone and Install
 
 ```bash
-git clone <your-repo-url>
-cd cf-next-workers-d1-r2-boilerplate
+git clone https://github.com/lilpacy/cloudflare-next-boilerplate.git
+cd cloudflare-next-boilerplate
 npm install
 ```
 

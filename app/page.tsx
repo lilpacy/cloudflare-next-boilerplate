@@ -58,7 +58,7 @@ export default function Home() {
               View Demo App
             </Link>
             <a
-              href="https://github.com"
+              href="https://github.com/lilpacy/cloudflare-next-boilerplate"
               target="_blank"
               rel="noopener noreferrer"
               className="px-6 py-3 border border-gray-300 rounded-lg bg-white hover:bg-gray-50 font-medium"

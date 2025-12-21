@@ -2,6 +2,14 @@
 	"name": "cf-next-workers-d1-r2-boilerplate",
 	"version": "0.1.0",
 	"private": true,
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/lilpacy/cloudflare-next-boilerplate.git"
+	},
+	"homepage": "https://github.com/lilpacy/cloudflare-next-boilerplate",
+	"bugs": {
+		"url": "https://github.com/lilpacy/cloudflare-next-boilerplate/issues"
+	},
 	"scripts": {
 		"dev": "next dev --turbopack",
 		"build": "next build",
