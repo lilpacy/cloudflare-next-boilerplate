@@ -1,0 +1,2 @@
+# Ensure commits only proceed when the production build succeeds
+npm run type-check && npm run lint

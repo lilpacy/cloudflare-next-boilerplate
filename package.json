@@ -1,0 +1,50 @@
+{
+	"name": "cf-next-workers-d1-r2-boilerplate",
+	"version": "0.1.0",
+	"private": true,
+	"scripts": {
+		"dev": "next dev --turbopack",
+		"build": "next build",
+		"start": "next start",
+		"lint": "next lint",
+		"type-check": "tsc --noEmit",
+		"deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+		"preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
+		"cf-typegen": "wrangler types --env-interface CloudflareEnv ./cloudflare-env.d.ts",
+		"db:create": "wrangler d1 create my-app-db",
+		"db:create:preview": "wrangler d1 create my-app-db-preview",
+		"db:migrate:local": "wrangler d1 migrations apply my-app-db --local",
+		"db:migrate:remote": "wrangler d1 migrations apply my-app-db --remote",
+		"db:shell:local": "wrangler d1 execute my-app-db --local --command",
+		"db:shell:remote": "wrangler d1 execute my-app-db --remote --command",
+		"storage:create": "wrangler r2 bucket create my-app-storage",
+		"storage:create:cache": "wrangler r2 bucket create my-app-cache",
+		"storage:create:preview": "wrangler r2 bucket create my-app-storage-preview",
+		"prepare": "husky"
+	},
+	"dependencies": {
+		"@aws-sdk/client-s3": "^3.899.0",
+		"@clerk/nextjs": "^6.33.1",
+		"@opennextjs/cloudflare": "^1.14.7",
+		"date-fns": "^4.1.0",
+		"drizzle-orm": "^0.44.5",
+		"next": "^15.5.9",
+		"react": "19.1.0",
+		"react-dom": "19.1.0",
+		"zod": "^4.1.11"
+	},
+	"devDependencies": {
+		"@eslint/eslintrc": "^3",
+		"@tailwindcss/postcss": "^4",
+		"@types/node": "^20.19.18",
+		"@types/react": "^19",
+		"@types/react-dom": "^19",
+		"drizzle-kit": "^0.31.8",
+		"eslint": "^9",
+		"eslint-config-next": "15.4.6",
+		"husky": "^9.1.7",
+		"tailwindcss": "^4",
+		"typescript": "^5",
+		"wrangler": "^4.40.3"
+	}
+}

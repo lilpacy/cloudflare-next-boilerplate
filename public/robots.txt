@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://lilpacy.info/sitemap.xml

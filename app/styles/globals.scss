@@ -1,0 +1,77 @@
+@use "./_variables.scss" as *;
+
+@import url("tailwindcss");
+
+// Link styles for content areas only
+.prose a,
+.content a {
+  color: rgb(29 78 216);
+}
+
+.prose a:hover,
+.content a:hover {
+  border-bottom: 2px solid rgb(29 78 216);
+}
+
+//.content p {
+//  @apply my-6;
+//}
+//
+//.content ul {
+//  @apply my-6;
+//}
+
+//@import 'swiper/css';
+//@import 'swiper/css/pagination';
+//@import 'swiper/css/navigation';
+//@import 'animate.css';
+
+html,
+body {
+  background: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACQAAAAkCAYAAADhAJiYAAAACXBIWXMAAAsSAAALEgHS3X78AAAAG3RFWHRTb2Z0d2FyZQBDZWxzeXMgU3R1ZGlvIFRvb2zBp+F8AAAAaklEQVRYw+3SOwqAUAxE0YyCP5773+cDwUbGRkTQxkZT3FSBNIeZaF2qI9FoXar7oUQ0SgSa5tvBjpASgdIkZG8htcfu0Mcx5U3or595BHVjOau51kRlgAABAgQIECBAgAABAgQIEKC3swOGHZ93/K3/jwAAAABJRU5ErkJggg==");
+  //background-image: url("data:image/svg+xml,<svg id='patternId' width='100%' height='100%' xmlns='http://www.w3.org/2000/svg'><defs><pattern id='a' patternUnits='userSpaceOnUse' width='20' height='20' patternTransform='scale(2) rotate(0)'><rect x='0' y='0' width='100%' height='100%' fill='hsla(0,0%,100%,1)'/><path d='M10-6V6M10 14v12M26 10H14M6 10H-6'  stroke-linecap='square' stroke-width='1' stroke='hsla(259, 0%, 69%, 0.36)' fill='none'/></pattern></defs><rect width='800%' height='800%' transform='translate(0,0)' fill='url(%23a)'/></svg>")
+  //padding: 0;
+  //margin: 0;
+  //background-color: $color-bg-black;
+  //color: #FFF;
+
+  // Adjust default font, size and weight
+  //font-family: 'Montserrat', sans-serif;
+  //font-size: 18px;
+}
+
+* {
+  box-sizing: border-box;
+  //z-index: 2;
+}
+
+@layer base {
+  body {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+// The components layer is for class-based styles that you want to be able to override with utilities.
+@layer components {
+  .bg-glass {
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: saturate(180%) blur(5px);
+  }
+
+  .bg-tile {
+    background: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACQAAAAkCAYAAADhAJiYAAAACXBIWXMAAAsSAAALEgHS3X78AAAAG3RFWHRTb2Z0d2FyZQBDZWxzeXMgU3R1ZGlvIFRvb2zBp+F8AAAAaklEQVRYw+3SOwqAUAxE0YyCP5773+cDwUbGRkTQxkZT3FSBNIeZaF2qI9FoXar7oUQ0SgSa5tvBjpASgdIkZG8htcfu0Mcx5U3or595BHVjOau51kRlgAABAgQIECBAgAABAgQIEKC3swOGHZ93/K3/jwAAAABJRU5ErkJggg==");
+  }
+
+  .flex-center {
+    @apply flex justify-center items-center;
+  }
+
+  .blur-white {
+    background: linear-gradient(
+      270deg,
+      #fcfcfd 0%,
+      rgba(252, 252, 253, 0) 100%
+    );
+  }
+}

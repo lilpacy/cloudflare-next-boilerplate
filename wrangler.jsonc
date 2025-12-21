@@ -1,0 +1,127 @@
+/**
+ * For more details on how to configure Wrangler, refer to:
+ * https://developers.cloudflare.com/workers/wrangler/configuration/
+ *
+ * IMPORTANT: Replace the placeholders below with your actual values:
+ * - database_id: Create D1 databases with `npm run db:create` and `npm run db:create:preview`
+ * - bucket_name: Create R2 buckets with `npm run storage:create*` commands
+ * - NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: Get from https://clerk.com
+ * - NEXT_PUBLIC_BASE_URL: Your production domain
+ * - NEXT_PUBLIC_GOOGLE_ANALYTICS_ID: Your GA4 measurement ID (optional)
+ */
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "my-app",
+  "build": {
+    "command": "npx opennextjs-cloudflare build"
+  },
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2025-03-01",
+  "compatibility_flags": [
+    "nodejs_compat",
+    "global_fetch_strictly_public"
+  ],
+  "workers_dev": true,
+  "preview_urls": true,
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "services": [
+    {
+      "binding": "WORKER_SELF_REFERENCE",
+      "service": "my-app"
+    }
+  ],
+  // Default/production bindings
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "my-app-db",
+      "database_id": "YOUR_D1_DATABASE_ID_HERE",
+      "migrations_dir": "drizzle"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "R2_BUCKET",
+      "bucket_name": "my-app-storage"
+    },
+    {
+      "binding": "NEXT_INC_CACHE_R2_BUCKET",
+      "bucket_name": "my-app-cache"
+    }
+  ],
+  "vars": {
+    "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY": "YOUR_CLERK_PUBLISHABLE_KEY_HERE",
+    "ENV_NAME": "production",
+    "NEXT_PUBLIC_BASE_URL": "https://your-domain.com",
+    "NEXT_PUBLIC_GOOGLE_ANALYTICS_ID": "",
+    "ADMIN_EMAILS": ""
+  },
+  // Environment-specific overrides
+  "env": {
+    "preview": {
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "my-app-db-preview",
+          "database_id": "YOUR_PREVIEW_D1_DATABASE_ID_HERE",
+          "migrations_dir": "drizzle"
+        }
+      ],
+      "r2_buckets": [
+        {
+          "binding": "R2_BUCKET",
+          "bucket_name": "my-app-storage-preview"
+        },
+        {
+          "binding": "NEXT_INC_CACHE_R2_BUCKET",
+          "bucket_name": "my-app-cache-preview"
+        }
+      ],
+      "vars": {
+        "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY": "YOUR_CLERK_PUBLISHABLE_KEY_HERE",
+        "ENV_NAME": "preview",
+        "ADMIN_EMAILS": ""
+      }
+    },
+    "production": {
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "my-app-db",
+          "database_id": "YOUR_D1_DATABASE_ID_HERE",
+          "migrations_dir": "drizzle"
+        }
+      ],
+      "r2_buckets": [
+        {
+          "binding": "R2_BUCKET",
+          "bucket_name": "my-app-storage"
+        },
+        {
+          "binding": "NEXT_INC_CACHE_R2_BUCKET",
+          "bucket_name": "my-app-cache"
+        }
+      ],
+      "vars": {
+        "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY": "YOUR_CLERK_PUBLISHABLE_KEY_HERE",
+        "ENV_NAME": "production",
+        "NEXT_PUBLIC_BASE_URL": "https://your-domain.com",
+        "NEXT_PUBLIC_GOOGLE_ANALYTICS_ID": "",
+        "ADMIN_EMAILS": ""
+      }
+    }
+  },
+  "observability": {
+    "enabled": false,
+    "head_sampling_rate": 1,
+    "logs": {
+      "enabled": true,
+      "head_sampling_rate": 1,
+      "persist": true,
+      "invocation_logs": true
+    }
+  }
+}

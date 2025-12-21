@@ -1,0 +1,100 @@
+$breakpoint: 768px;
+$breakpoint-header: 1280px;
+$header-height: 130px;
+
+@mixin flex-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+@mixin main-page-content-container {
+  width: 100%;
+  height: 100%;
+
+  // Desktop header
+  @media (min-width: calc($breakpoint-header - 1px)) {
+    padding: 220px 80px 50px 80px;
+  }
+
+  // Mobile header
+  @media (max-width: $breakpoint-header) {
+    padding: 120px 35px 50px 35px;
+  }
+}
+
+@mixin sub-page-content-container {
+  width: 100%;
+  height: 100%;
+  padding-left: 5%;
+  padding-right: 5%;
+  padding-bottom: 50px;
+
+  // Desktop header
+  @media (min-width: calc($breakpoint-header - 1px)) {
+    padding-top: calc($header-height + 70px);
+  }
+
+  // Mobile header
+  @media (max-width: $breakpoint-header) {
+    padding-top: 120px;
+  }
+}
+
+@mixin bg-water-image {
+  background-image: url('../assets/images/oasys_water_bg_transparent.png');
+  background-position-x: right;
+  background-position-y: center;
+}
+
+@mixin bg-orb-image-blurry {
+  background-color: #f2f2f2bd;
+  background-image: url('../assets/images/oasys_bg_water_transparent_blurry.jpeg');
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-size: 150%;
+
+  // Mobile header
+  @media (max-width: $breakpoint) {
+    background-size: 380%;
+  }
+}
+
+@mixin bg-water-image-2x {
+  background-image: url('../assets/images/oasys_water_bg.png');
+  background-size: 200%;
+  background-position-x: left;
+  background-position: center;
+}
+
+@mixin animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+
+  @keyframes pulse {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.5;
+    }
+  }
+}
+
+@mixin button-transition-settings {
+  -webkit-transition: opacity 200ms, transform 200ms;
+  -ms-transition: opacity 200ms, transform 200ms;
+  transition: opacity 200ms, transform 200ms;
+}
+
+@mixin button-hover-settings {
+  opacity: 70%;
+  transform: scale(0.95);
+}
+
+@mixin bg-color-transition-settings {
+  -webkit-transition: background-color 200ms linear;
+  -ms-transition: background-color 200ms linear;
+  transition: background-color 200ms linear;
+}
