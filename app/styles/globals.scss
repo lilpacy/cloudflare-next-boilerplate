@@ -1,6 +1,7 @@
 @use "./_variables.scss" as *;
 
 @import url("tailwindcss");
+@import "./_tokens.scss";
 
 // Link styles for content areas only
 .prose a,

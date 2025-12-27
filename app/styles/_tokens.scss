@@ -1,0 +1,46 @@
+/* styles/_tokens.scss */
+/* Design tokens managed with Tailwind CSS v4 @theme directive */
+@theme {
+  /* Font Sizes */
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
+  --font-size-3xl: 1.875rem;
+  --font-size-4xl: 2.25rem;
+  --font-size-5xl: 3rem;
+  --font-size-6xl: 4rem;
+
+  /* Gray Colors */
+  --color-gray-100: #f7fafc;
+  --color-gray-200: #edf2f7;
+  --color-gray-300: #e2e8f0;
+  --color-gray-400: #cbd5e0;
+  --color-gray-500: #a0aec0;
+  --color-gray-600: #718096;
+  --color-gray-700: #4a5568;
+  --color-gray-800: #2d3748;
+  --color-gray-900: #1a202c;
+
+  /* Blue Colors */
+  --color-blue-100: #ebf8ff;
+  --color-blue-200: #bee3f8;
+  --color-blue-300: #90cdf4;
+  --color-blue-400: #63b3ed;
+  --color-blue-500: #4299e1;
+  --color-blue-600: #3182ce;
+  --color-blue-700: #2b6cb0;
+  --color-blue-800: #2c5282;
+  --color-blue-900: #2a4365;
+
+  /* Breakpoints (min-width) */
+  /* For desktop-first approach, use max-* variants: max-sm:, max-md:, etc. */
+  /* Example: max-md: applies styles when width < 768px (≒ 767px and below) */
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1536px;
+}
