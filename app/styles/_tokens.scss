@@ -35,9 +35,9 @@
   --color-blue-800: #2c5282;
   --color-blue-900: #2a4365;
 
-  /* Breakpoints (min-width) */
-  /* For desktop-first approach, use max-* variants: max-sm:, max-md:, etc. */
-  /* Example: max-md: applies styles when width < 768px (≒ 767px and below) */
+  /* Breakpoints (min-width, mobile-first by default) */
+  /* sm:, md:, etc. apply styles at that breakpoint and above */
+  /* For desktop-first, use max-* variants: max-md: applies when width < 768px */
   --breakpoint-sm: 640px;
   --breakpoint-md: 768px;
   --breakpoint-lg: 1024px;
