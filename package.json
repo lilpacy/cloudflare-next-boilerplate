@@ -28,6 +28,7 @@
     "storage:create": "wrangler r2 bucket create my-app-storage",
     "storage:create:cache": "wrangler r2 bucket create my-app-cache",
     "storage:create:preview": "wrangler r2 bucket create my-app-storage-preview",
+    "storage:create:cache:preview": "wrangler r2 bucket create my-app-cache-preview",
     "prepare": "husky"
   },
   "dependencies": {
