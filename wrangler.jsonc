@@ -62,6 +62,12 @@
   // Environment-specific overrides
   "env": {
     "preview": {
+      "services": [
+        {
+          "binding": "WORKER_SELF_REFERENCE",
+          "service": "my-app-preview"
+        }
+      ],
       "d1_databases": [
         {
           "binding": "DB",
