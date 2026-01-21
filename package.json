@@ -28,6 +28,7 @@
     "cf:typegen": "wrangler types --env-interface CloudflareEnv ./cloudflare-env.d.ts",
     "db:create": "wrangler d1 create my-app-db",
     "db:create:preview": "wrangler d1 create my-app-db-preview",
+    "db:generate": "drizzle-kit generate",
     "db:migrate:local": "wrangler d1 migrations apply my-app-db --local",
     "db:migrate:prod": "wrangler d1 migrations apply my-app-db --remote",
     "db:migrate:preview": "wrangler d1 migrations apply my-app-db-preview --remote --env preview",
