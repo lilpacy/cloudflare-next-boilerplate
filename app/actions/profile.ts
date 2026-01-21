@@ -4,7 +4,7 @@ import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { drizzle } from "drizzle-orm/d1";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { users } from "@/lib/db/schema";
 import { getR2Bucket } from "@/lib/r2/client";
 
@@ -67,7 +67,6 @@ export async function uploadProfileImage(formData: FormData) {
 
     // Save to database
     const db = await getDb();
-    const now = new Date();
 
     // Check if user exists
     const existingUser = await db
@@ -82,7 +81,7 @@ export async function uploadProfileImage(formData: FormData) {
         .update(users)
         .set({
           profileImageUrl: key,
-          updatedAt: now,
+          updatedAt: sql`(unixepoch())`,
         })
         .where(eq(users.userId, userId));
     } else {
@@ -90,8 +89,8 @@ export async function uploadProfileImage(formData: FormData) {
       await db.insert(users).values({
         userId,
         profileImageUrl: key,
-        createdAt: now,
-        updatedAt: now,
+        createdAt: sql`(unixepoch())`,
+        updatedAt: sql`(unixepoch())`,
       });
     }
 
@@ -152,7 +151,7 @@ export async function deleteProfileImage() {
       .update(users)
       .set({
         profileImageUrl: null,
-        updatedAt: new Date(),
+        updatedAt: sql`(unixepoch())`,
       })
       .where(eq(users.userId, userId));
 

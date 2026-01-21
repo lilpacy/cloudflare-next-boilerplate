@@ -4,7 +4,7 @@ import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { drizzle } from "drizzle-orm/d1";
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, desc, sql } from "drizzle-orm";
 import { todos } from "@/lib/db/schema";
 import { todoSchema, updateTodoSchema, type TodoInput, type UpdateTodoInput } from "@/lib/schemas/todo";
 
@@ -63,7 +63,6 @@ export async function createTodo(input: TodoInput) {
 
   const db = await getDb();
   const id = crypto.randomUUID();
-  const now = new Date();
 
   await db.insert(todos).values({
     id,
@@ -71,8 +70,8 @@ export async function createTodo(input: TodoInput) {
     description: validatedData.description || null,
     completed: validatedData.completed || false,
     userId,
-    createdAt: now,
-    updatedAt: now,
+    createdAt: sql`(unixepoch())`,
+    updatedAt: sql`(unixepoch())`,
   });
 
   revalidatePath("/todos");
@@ -105,7 +104,7 @@ export async function updateTodo(id: string, input: UpdateTodoInput) {
     .update(todos)
     .set({
       ...validatedData,
-      updatedAt: new Date(),
+      updatedAt: sql`(unixepoch())`,
     })
     .where(eq(todos.id, id));
 
@@ -165,7 +164,7 @@ export async function toggleTodoCompleted(id: string) {
     .update(todos)
     .set({
       completed: !existingTodo.completed,
-      updatedAt: new Date(),
+      updatedAt: sql`(unixepoch())`,
     })
     .where(eq(todos.id, id));
 
