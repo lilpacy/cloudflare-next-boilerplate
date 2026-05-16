@@ -13,25 +13,22 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "my-app",
   "build": {
-    "command": "npx opennextjs-cloudflare build"
+    "command": "npx opennextjs-cloudflare build",
   },
   "main": ".open-next/worker.js",
   "compatibility_date": "2025-03-01",
-  "compatibility_flags": [
-    "nodejs_compat",
-    "global_fetch_strictly_public"
-  ],
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
   "workers_dev": true,
   "preview_urls": true,
   "assets": {
     "directory": ".open-next/assets",
-    "binding": "ASSETS"
+    "binding": "ASSETS",
   },
   "services": [
     {
       "binding": "WORKER_SELF_REFERENCE",
-      "service": "my-app"
-    }
+      "service": "my-app",
+    },
   ],
   // Default/production bindings
   "d1_databases": [
@@ -39,25 +36,25 @@
       "binding": "DB",
       "database_name": "my-app-db",
       "database_id": "YOUR_D1_DATABASE_ID_HERE",
-      "migrations_dir": "drizzle"
-    }
+      "migrations_dir": "drizzle",
+    },
   ],
   "r2_buckets": [
     {
       "binding": "R2_BUCKET",
-      "bucket_name": "my-app-storage"
+      "bucket_name": "my-app-storage",
     },
     {
       "binding": "NEXT_INC_CACHE_R2_BUCKET",
-      "bucket_name": "my-app-cache"
-    }
+      "bucket_name": "my-app-cache",
+    },
   ],
   "vars": {
     "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY": "YOUR_CLERK_PUBLISHABLE_KEY_HERE",
     "ENV_NAME": "production",
     "NEXT_PUBLIC_BASE_URL": "https://your-domain.com",
     "NEXT_PUBLIC_GOOGLE_ANALYTICS_ID": "",
-    "ADMIN_EMAILS": ""
+    "ADMIN_EMAILS": "",
   },
   // Environment-specific overrides
   "env": {
@@ -65,60 +62,33 @@
       "services": [
         {
           "binding": "WORKER_SELF_REFERENCE",
-          "service": "my-app-preview"
-        }
+          "service": "my-app-preview",
+        },
       ],
       "d1_databases": [
         {
           "binding": "DB",
           "database_name": "my-app-db-preview",
           "database_id": "YOUR_PREVIEW_D1_DATABASE_ID_HERE",
-          "migrations_dir": "drizzle"
-        }
+          "migrations_dir": "drizzle",
+        },
       ],
       "r2_buckets": [
         {
           "binding": "R2_BUCKET",
-          "bucket_name": "my-app-storage-preview"
+          "bucket_name": "my-app-storage-preview",
         },
         {
           "binding": "NEXT_INC_CACHE_R2_BUCKET",
-          "bucket_name": "my-app-cache-preview"
-        }
+          "bucket_name": "my-app-cache-preview",
+        },
       ],
       "vars": {
         "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY": "YOUR_CLERK_PUBLISHABLE_KEY_HERE",
         "ENV_NAME": "preview",
-        "ADMIN_EMAILS": ""
-      }
+        "ADMIN_EMAILS": "",
+      },
     },
-    "production": {
-      "d1_databases": [
-        {
-          "binding": "DB",
-          "database_name": "my-app-db",
-          "database_id": "YOUR_D1_DATABASE_ID_HERE",
-          "migrations_dir": "drizzle"
-        }
-      ],
-      "r2_buckets": [
-        {
-          "binding": "R2_BUCKET",
-          "bucket_name": "my-app-storage"
-        },
-        {
-          "binding": "NEXT_INC_CACHE_R2_BUCKET",
-          "bucket_name": "my-app-cache"
-        }
-      ],
-      "vars": {
-        "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY": "YOUR_CLERK_PUBLISHABLE_KEY_HERE",
-        "ENV_NAME": "production",
-        "NEXT_PUBLIC_BASE_URL": "https://your-domain.com",
-        "NEXT_PUBLIC_GOOGLE_ANALYTICS_ID": "",
-        "ADMIN_EMAILS": ""
-      }
-    }
   },
   "observability": {
     "enabled": false,
@@ -127,7 +97,7 @@
       "enabled": true,
       "head_sampling_rate": 1,
       "persist": true,
-      "invocation_logs": true
-    }
-  }
+      "invocation_logs": true,
+    },
+  },
 }
