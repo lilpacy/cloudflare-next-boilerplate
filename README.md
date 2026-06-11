@@ -18,7 +18,7 @@ A production-ready boilerplate for building full-stack applications with Next.js
 
 ## Prerequisites
 
-- Node.js 18+ and pnpm
+- Node.js 20.12+ and pnpm (E2E tests use `process.loadEnvFile`)
 - Cloudflare account (free tier works)
 - Clerk account (free tier works)
 
