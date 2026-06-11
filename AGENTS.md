@@ -6,11 +6,11 @@
 - Database migrations sit in `drizzle/`; keep SQL files in sync with generated metadata. Static assets belong in `public/`, and deployment wiring is captured by `open-next.config.ts` and `wrangler.jsonc`.
 
 ## Build, Test, and Development Commands
-- `npm run dev` starts the local dev server with Turbopack.
-- `npm run build` creates a production bundle; follow with `npm run start` to simulate the Cloudflare runtime locally.
-- `npm run lint` runs the configured ESLint ruleset; fix warnings before opening a PR.
-- `npm run deploy` and `npm run preview` build and ship via OpenNext + Cloudflare. Use `npm run cf-typegen` after editing `cloudflare-env.d.ts`.
-- Database helpers: `npm run db:migrate:local` and `npm run db:migrate:remote` apply the current Drizzle migration; use the paired `db:shell:*` commands for ad-hoc queries.
+- `pnpm run dev` starts the local dev server with Turbopack.
+- `pnpm run build` creates a production bundle; follow with `pnpm run start` to simulate the Cloudflare runtime locally.
+- `pnpm run lint` runs the configured ESLint ruleset; fix warnings before opening a PR.
+- `pnpm run deploy` and `pnpm run preview` build and ship via OpenNext + Cloudflare. Use `pnpm run cf-typegen` after editing `cloudflare-env.d.ts`.
+- Database helpers: `pnpm run db:migrate:local` and `pnpm run db:migrate:prod` apply the current Drizzle migration; use the paired `db:shell:*` commands for ad-hoc queries.
 
 ## Coding Style & Naming Conventions
 - TypeScript is required; prefer explicit types on exported functions. Use 2-space indentation and keep imports sorted logically (React/Next, third-party, local).
@@ -19,7 +19,7 @@
 
 ## Testing Guidelines
 - Automated tests are not yet in place; when adding them, colocate files as `*.test.ts` alongside the code and target critical rendering paths and Drizzle queries.
-- Always run `npm run lint` and `npm run build` before pushing. For database changes, exercise migrations locally via `db:migrate:local` and seed data through the D1 shell commands.
+- Always run `pnpm run lint` and `pnpm run build` before pushing. For database changes, exercise migrations locally via `db:migrate:local` and seed data through the D1 shell commands.
 
 ## Commit & Pull Request Guidelines
 - History shows short imperative commits (`fix: upload image`, `add rss feed...`). Follow `type: summary (context)` with optional issue reference `(vibe-kanban XXXXX)`.

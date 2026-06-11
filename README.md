@@ -18,7 +18,7 @@ A production-ready boilerplate for building full-stack applications with Next.js
 
 ## Prerequisites
 
-- Node.js 18+ and npm
+- Node.js 18+ and pnpm
 - Cloudflare account (free tier works)
 - Clerk account (free tier works)
 
@@ -29,7 +29,7 @@ A production-ready boilerplate for building full-stack applications with Next.js
 ```bash
 git clone https://github.com/lilpacy/cloudflare-next-boilerplate.git
 cd cloudflare-next-boilerplate
-npm install
+pnpm install
 ```
 
 ### 2. Set Up Clerk Authentication
@@ -51,10 +51,10 @@ cp .env.example .env.local
 
 ```bash
 # Production database
-npm run db:create
+pnpm run db:create
 
 # Preview/staging database
-npm run db:create:preview
+pnpm run db:create:preview
 ```
 
 Copy the database IDs from the output and update `wrangler.jsonc`:
@@ -65,9 +65,9 @@ Copy the database IDs from the output and update `wrangler.jsonc`:
 
 ```bash
 # Create all required buckets
-npm run storage:create        # Main storage
-npm run storage:create:cache  # Next.js cache
-npm run storage:create:preview # Preview storage
+pnpm run storage:create        # Main storage
+pnpm run storage:create:cache  # Next.js cache
+pnpm run storage:create:preview # Preview storage
 ```
 
 ### 4. Update Configuration
@@ -82,16 +82,16 @@ Edit `wrangler.jsonc` and replace all placeholder values:
 
 ```bash
 # For local development
-npm run db:migrate:local
+pnpm run db:migrate:local
 
 # For production (after first deploy)
-npm run db:migrate:remote
+pnpm run db:migrate:prod
 ```
 
 ### 6. Start Development Server
 
 ```bash
-npm run dev
+pnpm run dev
 ```
 
 Visit [http://localhost:3000](http://localhost:3000) to see your app!
@@ -118,28 +118,46 @@ Visit [http://localhost:3000](http://localhost:3000) to see your app!
 ## Available Scripts
 
 ### Development
-- `npm run dev` - Start development server with Turbopack
-- `npm run build` - Build for production
-- `npm run start` - Start production server locally
-- `npm run lint` - Run ESLint
-- `npm run type-check` - Run TypeScript type checking
+- `pnpm run dev` - Start development server with Turbopack
+- `pnpm run build` - Build for production
+- `pnpm run start` - Start production server locally
+- `pnpm run lint` - Run ESLint
+- `pnpm run type-check` - Run TypeScript type checking
 
 ### Database (D1)
-- `npm run db:create` - Create production database
-- `npm run db:create:preview` - Create preview database
-- `npm run db:migrate:local` - Run migrations locally
-- `npm run db:migrate:remote` - Run migrations on production
-- `npm run db:shell:local` - Open local database shell
-- `npm run db:shell:remote` - Open remote database shell
+- `pnpm run db:create` - Create production database
+- `pnpm run db:create:preview` - Create preview database
+- `pnpm run db:migrate:local` - Run migrations locally
+- `pnpm run db:migrate:prod` - Run migrations on production
+- `pnpm run db:shell:local` - Open local database shell
+- `pnpm run db:shell:prod` - Open remote database shell
 
 ### Storage (R2)
-- `npm run storage:create` - Create main R2 bucket
-- `npm run storage:create:cache` - Create cache bucket
-- `npm run storage:create:preview` - Create preview bucket
+- `pnpm run storage:create` - Create main R2 bucket
+- `pnpm run storage:create:cache` - Create cache bucket
+- `pnpm run storage:create:preview` - Create preview bucket
 
 ### Deployment
-- `npm run deploy` - Build and deploy to Cloudflare
-- `npm run preview` - Build and preview before deploying
+- `pnpm run deploy` - Build and deploy to Cloudflare
+- `pnpm run preview` - Build and preview before deploying
+
+## E2E Testing
+
+```bash
+# Against a local dev server (started automatically by Playwright)
+pnpm run test:e2e
+
+# Against the deployed preview worker
+E2E_ENV=preview E2E_PREVIEW_URL=https://my-app-preview.<account>.workers.dev pnpm run test:e2e
+```
+
+E2E tests require `CLERK_SECRET_KEY` in `.env` or `.env.local` (used to create
+test users via the Clerk API).
+
+> **Warning**: `E2E_ENV=preview` wipes all rows in the preview D1 database
+> (`todos` and `users`) before running. The preview environment is dedicated
+> to E2E verification — do not use it for manual staging checks, and do not
+> run preview E2E jobs concurrently.
 
 ## Deployment
 
@@ -147,14 +165,21 @@ Visit [http://localhost:3000](http://localhost:3000) to see your app!
 
 1. Ensure all Cloudflare resources are created (D1, R2)
 2. Update `wrangler.jsonc` with actual IDs and values
-3. Run migrations locally first: `npm run db:migrate:local`
-4. Deploy: `npm run deploy`
-5. Run remote migrations: `npm run db:migrate:remote`
+3. Set the Clerk secret key as a Worker secret (required for authentication in deployed environments):
+
+```bash
+pnpm dlx wrangler secret put CLERK_SECRET_KEY
+pnpm dlx wrangler secret put CLERK_SECRET_KEY --env preview
+```
+
+4. Run migrations locally first: `pnpm run db:migrate:local`
+5. Deploy: `pnpm run deploy`
+6. Run remote migrations: `pnpm run db:migrate:prod`
 
 ### Subsequent Deployments
 
 ```bash
-npm run deploy
+pnpm run deploy
 ```
 
 ## Environment Variables
@@ -210,7 +235,7 @@ If you want to start fresh without the Todo example:
 ## Troubleshooting
 
 ### Database Issues
-- **"Table not found"**: Run `npm run db:migrate:local` or `npm run db:migrate:remote`
+- **"Table not found"**: Run `pnpm run db:migrate:local` or `pnpm run db:migrate:prod`
 - **"Database binding not found"**: Check `wrangler.jsonc` configuration
 
 ### Authentication Issues
@@ -218,9 +243,9 @@ If you want to start fresh without the Todo example:
 - **"Unauthorized"**: Ensure you're signed in and have proper permissions
 
 ### Deployment Issues
-- **Build fails**: Run `npm run type-check` to find TypeScript errors
+- **Build fails**: Run `pnpm run type-check` to find TypeScript errors
 - **Workers error**: Verify all IDs in `wrangler.jsonc` are correct
-- **Database migrations**: Ensure you ran `npm run db:migrate:remote` after deployment
+- **Database migrations**: Ensure you ran `pnpm run db:migrate:prod` after deployment
 
 ## Resources
 

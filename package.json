@@ -2,6 +2,7 @@
   "name": "cf-next-workers-d1-r2-boilerplate",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "pnpm@10.13.1",
   "repository": {
     "type": "git",
     "url": "https://github.com/lilpacy/cloudflare-next-boilerplate.git"
@@ -21,7 +22,8 @@
     "test:watch": "vitest --watch",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
-    "deploy": "npm run deploy:prod",
+    "test:e2e": "playwright test",
+    "deploy": "pnpm run deploy:prod",
     "deploy:prod": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
     "deploy:preview": "opennextjs-cloudflare build && opennextjs-cloudflare deploy --env preview",
     "preview:cf": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
@@ -56,7 +58,9 @@
     "zod": "^4.1.11"
   },
   "devDependencies": {
+    "@clerk/testing": "^2.1.0",
     "@eslint/eslintrc": "^3",
+    "@playwright/test": "^1.60.0",
     "@tailwindcss/postcss": "^4",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.1",
@@ -72,10 +76,23 @@
     "eslint-config-next": "15.4.6",
     "happy-dom": "^20.3.0",
     "husky": "^9.1.7",
+    "sass": "^1.100.0",
     "tailwindcss": "^4",
     "typescript": "^5",
     "vite-tsconfig-paths": "^6.0.4",
     "vitest": "^4.0.17",
     "wrangler": "^4.40.3"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@clerk/shared",
+      "@parcel/watcher",
+      "@tailwindcss/oxide",
+      "better-sqlite3",
+      "esbuild",
+      "sharp",
+      "unrs-resolver",
+      "workerd"
+    ]
   }
 }

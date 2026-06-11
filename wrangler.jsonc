@@ -86,7 +86,8 @@
       "vars": {
         "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY": "YOUR_CLERK_PUBLISHABLE_KEY_HERE",
         "ENV_NAME": "preview",
-        "ADMIN_EMAILS": "",
+        // preview は E2E 検証専用。global.setup.ts が管理者としてサインインするテストユーザー
+        "ADMIN_EMAILS": "e2e-admin+clerk_test@example.com",
       },
     },
   },
