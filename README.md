@@ -311,6 +311,24 @@ pnpm run db:migrate:prod
 pnpm run deploy
 ```
 
+### Manual Production Deployment (GitHub Actions)
+
+Open **Actions → Deploy production → Run workflow**, select **master**, then run
+it. `.github/workflows/deploy-production.yml` accepts only manual dispatches on
+`master`; other branches skip the deploy job. It runs lint, builds the OpenNext
+Worker, applies pending production D1 migrations, then deploys to `my-app`.
+A build or migration failure stops deployment. Production runs are serialized
+without cancelling a running deployment. Pushing or merging to `master` still
+only deploys preview automatically.
+
+Set `CLOUDFLARE_WRANGLER_CONFIG` to the complete production Wrangler configuration
+as valid JSON, with actual root D1/R2 bindings and root `vars` (`ENV_NAME` must be
+`production`). The workflow exports root `vars` to the build and masks config
+strings in logs. It shares `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` with
+the preview workflow; the token must also cover production resources. Keep
+`CLERK_SECRET_KEY` on the production Worker. Update this config secret whenever
+production bindings or build variables change.
+
 ### Automatic Preview Deployment
 
 Every push to `master` (including a merged PR) runs `.github/workflows/deploy-preview.yml`.
@@ -319,8 +337,8 @@ with `--env preview`, applies pending preview D1 migrations with
 `pnpm run db:migrate:preview`, then deploys with `--env preview`. It uses Node
 22.16.0. A build or migration failure stops deployment. Preview deploys are
 serialized without cancelling a running deployment. Check **Actions → Deploy
-preview** for the result. Production deployment and migrations remain manual
-using the commands above.
+preview** for the result. Production deployment and migrations run only through the manual workflow below
+or the commands above.
 
 Configure these repository **Actions secrets** before enabling the workflow:
 

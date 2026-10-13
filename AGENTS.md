@@ -3,7 +3,7 @@
 ## Project Structure & Module Organization
 - `app/` hosts the Next.js App Router and is organized in four layers (UI / Application / Domain / Infrastructure). Read `ARCHITECTURE.md` before adding or moving server-side code; it defines which directory each kind of code belongs in and which imports are allowed. `lib/` and `app/actions/` are legacy locations being migrated; do not add to them.
 - Shared presentation-only React components live in `packages/ui`; keep Clerk, database and storage logic in the app. `pnpm lint` enforces Nx project boundaries and cross-project cycle restrictions.
-- Database migrations sit in `drizzle/`; keep SQL files in sync with generated metadata. Static assets belong in `public/`, and deployment wiring is captured by `open-next.config.ts`, `wrangler.jsonc` and `.github/workflows/deploy-preview.yml` (preview deploy on every `master` push; production deploy is manual).
+- Database migrations sit in `drizzle/`; keep SQL files in sync with generated metadata. Static assets belong in `public/`, and deployment wiring is captured by `open-next.config.ts`, `wrangler.jsonc` and `.github/workflows/deploy-preview.yml` (preview deploy on every `master` push) and `.github/workflows/deploy-production.yml` (manual production deploy from `master`).
 
 ## Build, Test, and Development Commands
 - `pnpm run dev` starts the local dev server with Turbopack.
