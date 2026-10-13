@@ -63,7 +63,7 @@
   "devDependencies": {
     "@clerk/testing": "^2.1.0",
     "@playwright/test": "^1.60.0",
-    "@tailwindcss/postcss": "^4",
+    "@tailwindcss/postcss": "^4.3.3",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.1",
     "@types/better-sqlite3": "^7.6.13",
@@ -79,7 +79,7 @@
     "happy-dom": "^20.3.0",
     "husky": "^9.1.7",
     "sass": "^1.100.0",
-    "tailwindcss": "^4",
+    "tailwindcss": "^4.3.3",
     "typescript": "^5",
     "vite-tsconfig-paths": "^6.0.4",
     "vitest": "^4.0.17",
