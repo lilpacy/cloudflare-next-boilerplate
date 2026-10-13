@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 
 const features = [
   {
-    title: "Next.js 15",
+    title: "Next.js 16",
     description: "Latest React framework with App Router and Server Components",
   },
   {
