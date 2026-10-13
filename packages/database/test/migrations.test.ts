@@ -1,24 +1,39 @@
 // @vitest-environment node
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import Database from "better-sqlite3";
 import { getTableColumns, getTableName, is } from "drizzle-orm";
 import { SQLiteTable } from "drizzle-orm/sqlite-core";
+import {
+  type DrizzleSQLiteSnapshotJSON,
+  generateSQLiteDrizzleJson,
+  generateSQLiteMigration,
+} from "drizzle-kit/api";
 import { describe, expect, it } from "vitest";
 import * as schema from "../src/schema";
 
 const migrationsDir = join(import.meta.dirname, "../migrations");
 
-type ColumnShape = { type: string; notNull: boolean; primaryKey: boolean };
+type ColumnShape = { type: string; notNull: boolean; primaryKey: boolean; hasDefault: boolean };
 type TableShapes = Record<string, Record<string, ColumnShape>>;
 
+function latestSnapshot(): DrizzleSQLiteSnapshotJSON {
+  const metaDir = join(migrationsDir, "meta");
+  const [latest] = readdirSync(metaDir)
+    .filter((name) => name.endsWith("_snapshot.json"))
+    .sort()
+    .reverse();
+  return JSON.parse(readFileSync(join(metaDir, latest), "utf8")) as DrizzleSQLiteSnapshotJSON;
+}
+
+// Same selection as `wrangler d1 migrations apply`: every *.sql directly in migrations_dir, by name.
 function applyMigrations(): Database.Database {
   const sqlite = new Database(":memory:");
-  const journal = JSON.parse(readFileSync(join(migrationsDir, "meta/_journal.json"), "utf8")) as {
-    entries: { tag: string }[];
-  };
-  for (const { tag } of journal.entries) {
-    sqlite.exec(readFileSync(join(migrationsDir, `${tag}.sql`), "utf8"));
+  const files = readdirSync(migrationsDir)
+    .filter((name) => name.endsWith(".sql"))
+    .sort();
+  for (const file of files) {
+    sqlite.exec(readFileSync(join(migrationsDir, file), "utf8"));
   }
   return sqlite;
 }
@@ -33,7 +48,12 @@ function shapesFromSchema(): TableShapes {
       Object.fromEntries(
         Object.values(getTableColumns(table)).map((column) => [
           column.name,
-          { type: column.getSQLType(), notNull: column.notNull, primaryKey: column.primary },
+          {
+            type: column.getSQLType(),
+            notNull: column.notNull,
+            primaryKey: column.primary,
+            hasDefault: column.hasDefault,
+          },
         ])
       ),
     ])
@@ -51,13 +71,19 @@ function shapesFromDatabase(sqlite: Database.Database): TableShapes {
         type: string;
         notnull: number;
         pk: number;
+        dflt_value: string | null;
       }[];
       return [
         name,
         Object.fromEntries(
           columns.map((column) => [
             column.name,
-            { type: column.type.toLowerCase(), notNull: column.notnull === 1, primaryKey: column.pk > 0 },
+            {
+              type: column.type.toLowerCase(),
+              notNull: column.notnull === 1,
+              primaryKey: column.pk > 0,
+              hasDefault: column.dflt_value !== null,
+            },
           ])
         ),
       ];
@@ -66,7 +92,14 @@ function shapesFromDatabase(sqlite: Database.Database): TableShapes {
 }
 
 describe("migrations と schema の整合", () => {
-  it("正常系: migrations を順に適用した DB のテーブルと列が schema の定義と一致する", () => {
+  it("正常系: schema は最後に生成した migration の snapshot から変わっていない", async () => {
+    const current = await generateSQLiteDrizzleJson(schema);
+    const pending = await generateSQLiteMigration(latestSnapshot(), current);
+
+    expect(pending).toEqual([]);
+  });
+
+  it("正常系: migrations の SQL をすべて適用した DB のテーブルと列が schema の定義と一致する", () => {
     const sqlite = applyMigrations();
     try {
       expect(shapesFromDatabase(sqlite)).toEqual(shapesFromSchema());

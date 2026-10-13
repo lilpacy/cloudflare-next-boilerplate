@@ -41,7 +41,7 @@ packages/database/
     db.ts                      createDb(d1: D1Database)
     index.ts
   migrations/                  drizzle-kit output; wrangler.jsonc migrations_dir points here
-  test/migrations.test.ts      applies the migrations to an in-memory SQLite and compares with schema
+  test/migrations.test.ts      drift checks: schema vs latest snapshot, and applied SQL vs schema
   drizzle.config.ts
 ```
 
@@ -74,7 +74,12 @@ Positive:
 
 - Adding a table means one new `modules/<name>/schema.ts` and one line in `schema.ts`.
 - `packages/database/test/migrations.test.ts` fails when `schema.ts` changes without
-  `pnpm run db:generate` (or when a migration is edited by hand). Nothing checked this before.
+  `pnpm run db:generate`, or when a migration is edited or added by hand. Nothing checked this before.
+  Two checks with different oracles: (1) `drizzle-kit/api` diffs the schema against the latest
+  `meta/*_snapshot.json`, exactly what `db:generate` would do, so defaults, indexes and foreign keys
+  count; (2) every `*.sql` in `migrations/` is applied by name to an in-memory SQLite, the selection
+  `wrangler d1 migrations apply` uses, and the resulting tables, columns, SQL types, `NOT NULL`,
+  primary keys and default presence are compared with the schema.
 - Any Worker in the monorepo can open the same database with `createDb(env.DB)`.
 
 Negative / accepted trade-offs:
@@ -85,12 +90,13 @@ Negative / accepted trade-offs:
 - The package carries dev dependencies of its own (`drizzle-kit`, `better-sqlite3`,
   `@cloudflare/workers-types`, `vitest`) because the Nx `banTransitiveDependencies` rule requires
   every import to be declared in the nearest `package.json`.
-- The migration test compares table names, column names, SQL types, `NOT NULL` and primary keys.
-  Defaults, indexes and foreign keys are not compared yet.
+- Check (2) compares default *presence*, not default values, indexes or foreign keys; those are
+  covered only through check (1), i.e. only for migrations that drizzle-kit generated.
 
 ## Verification
 
 `pnpm run lint`, `pnpm run test:run` (94 tests), `pnpm run type-check` (root, `@cf-next/ui`,
 `@cf-next/database`) and `pnpm run build` passed. `pnpm run db:generate` reports "No schema
-changes". Adding a column to `users` without regenerating made the migration test fail, so the
-drift check is live.
+changes". Changing a column default in the schema without regenerating failed check (1) only, and
+a hand-written `0001_manual.sql` adding a column failed check (2) only, so both drift checks are
+live and independent.
