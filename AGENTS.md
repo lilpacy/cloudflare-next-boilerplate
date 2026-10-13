@@ -4,7 +4,7 @@
 - `app/` hosts the Next.js App Router; page-level logic lives in route folders (e.g., `app/todos`, `app/admin`) with shared UI in `app/components` and utilities in `app/actions`.
 - Shared presentation-only React components live in `packages/ui`; keep Clerk, database and storage logic in the app. `pnpm lint` enforces Nx project boundaries and cross-project cycle restrictions.
 - Domain helpers live under `lib/` (`lib/db` for Drizzle clients, `lib/schemas` for Zod contracts, `lib/r2` for the R2 storage client). Update these when adjusting data flows.
-- Database migrations sit in `drizzle/`; keep SQL files in sync with generated metadata. Static assets belong in `public/`, and deployment wiring is captured by `open-next.config.ts` and `wrangler.jsonc`.
+- Database migrations sit in `drizzle/`; keep SQL files in sync with generated metadata. Static assets belong in `public/`, and deployment wiring is captured by `open-next.config.ts`, `wrangler.jsonc` and `.github/workflows/deploy.yml` (production deploy on every `master` push).
 
 ## Build, Test, and Development Commands
 - `pnpm run dev` starts the local dev server with Turbopack.
