@@ -2,11 +2,11 @@
 
 [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue?logo=github)](https://github.com/lilpacy/cloudflare-next-boilerplate)
 
-A production-ready boilerplate for building full-stack applications with Next.js 15 on Cloudflare Workers, featuring D1 (SQLite) database, R2 object storage, and Clerk authentication.
+A production-ready boilerplate for building full-stack applications with Next.js 16 on Cloudflare Workers, featuring D1 (SQLite) database, R2 object storage, and Clerk authentication.
 
 ## Features
 
-- **Next.js 15** - Latest React framework with App Router and Server Components
+- **Next.js 16** - Latest React framework with App Router and Server Components
 - **Cloudflare Workers** - Deploy globally on the edge with Workers
 - **D1 Database** - Serverless SQLite database at the edge
 - **R2 Storage** - Object storage compatible with S3 API
@@ -18,7 +18,7 @@ A production-ready boilerplate for building full-stack applications with Next.js
 
 ## Prerequisites
 
-- Node.js 20.12+ and pnpm (E2E tests use `process.loadEnvFile`)
+- Node.js 22.12+ and pnpm 10.13.1 (required by Wrangler and the build/test tooling)
 - Cloudflare account (free tier works)
 - Clerk account (free tier works)
 
@@ -139,7 +139,28 @@ Visit [http://localhost:3000](http://localhost:3000) to see your app!
 
 ### Deployment
 - `pnpm run deploy` - Build and deploy to Cloudflare
-- `pnpm run preview` - Build and preview before deploying
+- `pnpm run preview:cf` - Build and preview locally in the Cloudflare Workers runtime
+
+### Next.js 16 compatibility
+
+Next.js is held to the 16.3 patch series (`~16.3.8`): 16.4 currently causes
+Workers requests to fail when OpenNext loads `preview-props.json`
+([upstream issue #1355](https://github.com/opennextjs/opennextjs-cloudflare/issues/1355)).
+Revisit the minor-version limit after the adapter fixes this and local Workers
+checks pass.
+
+Next.js 16 uses Turbopack for development and production builds. ESLint runs
+separately via `pnpm run lint`; `next build` no longer runs it.
+
+Keep `middleware.ts` for Clerk authentication and admin authorization: it uses
+the Edge runtime. The Node.js runtime used by `proxy.ts` is not supported by
+the [OpenNext Cloudflare adapter](https://opennext.js.org/cloudflare). Revisit
+this when the adapter supports Node.js middleware/proxy.
+
+Builds require a valid `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` in `.env.local` or
+the build environment. Set `CLERK_SECRET_KEY` in `.dev.vars` for local Workers
+preview and in `.env.local` for `next dev`. Use `pnpm run preview:cf` to verify
+D1/R2 bindings in Workers; `pnpm run start` runs the Next.js Node server.
 
 ## E2E Testing
 
@@ -188,7 +209,7 @@ See `.env.example` for all available environment variables. For production, conf
 
 ## Tech Stack
 
-- **Framework**: Next.js 15 (App Router)
+- **Framework**: Next.js 16 (App Router)
 - **Runtime**: Cloudflare Workers
 - **Database**: Cloudflare D1 (SQLite)
 - **Storage**: Cloudflare R2 (S3-compatible)

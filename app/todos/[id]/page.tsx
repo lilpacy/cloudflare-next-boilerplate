@@ -20,19 +20,9 @@ export default async function EditTodoPage({
     redirect("/sign-in");
   }
 
+  let todo;
   try {
-    const todo = await getTodoById(id);
-
-    return (
-      <div className="container mx-auto px-4 py-8 max-w-2xl">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Edit Todo</h1>
-          <p className="text-gray-600">Update your todo information</p>
-        </div>
-
-        <EditTodoForm todo={todo} />
-      </div>
-    );
+    todo = await getTodoById(id);
   } catch (error) {
     return (
       <div className="container mx-auto px-4 py-8 max-w-2xl">
@@ -45,4 +35,15 @@ export default async function EditTodoPage({
       </div>
     );
   }
+
+  return (
+    <div className="container mx-auto px-4 py-8 max-w-2xl">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold mb-2">Edit Todo</h1>
+        <p className="text-gray-600">Update your todo information</p>
+      </div>
+
+      <EditTodoForm todo={todo} />
+    </div>
+  );
 }
