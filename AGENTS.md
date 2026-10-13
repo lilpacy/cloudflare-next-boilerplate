@@ -10,7 +10,7 @@
 - `pnpm run build` creates a production bundle; `pnpm run start` runs it on the Next.js Node server. Use `pnpm run preview:cf` to build and run it locally in the Cloudflare Workers runtime with D1/R2 bindings.
 - `pnpm run lint` runs the configured ESLint ruleset; fix warnings before opening a PR.
 - `pnpm run deploy` (production) and `pnpm run deploy:preview` build and ship via OpenNext + Cloudflare. Run `pnpm run cf:typegen` after editing bindings or vars in `wrangler.jsonc`; it regenerates `cloudflare-env.d.ts`.
-- Database helpers: `pnpm run db:generate` creates a migration from `lib/db/schema.ts`; `pnpm run db:migrate:local`, `db:migrate:preview` and `db:migrate:prod` apply migrations; use the paired `db:shell:*` commands for ad-hoc queries.
+- Database helpers: `pnpm run db:generate` creates a migration from `app/_infrastructure/schema.ts`; `pnpm run db:migrate:local`, `db:migrate:preview` and `db:migrate:prod` apply migrations; use the paired `db:shell:*` commands for ad-hoc queries.
 
 ## Coding Style & Naming Conventions
 - TypeScript is required; prefer explicit types on exported functions. Use 2-space indentation and keep imports sorted logically (React/Next, third-party, local).

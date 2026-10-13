@@ -46,3 +46,32 @@ describe("共有 UI の依存境界", () => {
     );
   });
 });
+
+describe("アプリ内の層の依存境界", () => {
+  it.each([
+    ["Domain", "app/_domain/boundary-check.ts", 'export type { Todo } from "./todo";'],
+    ["Application", "app/_application/boundary-check.ts", 'export { findTodosByUser } from "@/app/_infrastructure/todos";'],
+    ["Infrastructure", "app/_infrastructure/boundary-check.ts", 'export { eq } from "drizzle-orm";'],
+  ])("正常系: %s は下位の層と許可されたパッケージを利用できる", async (_, filePath, code) => {
+    const [result] = await new ESLint().lintText(code, { filePath });
+    expect(result.messages.filter((m) => m.ruleId === "no-restricted-imports")).toEqual([]);
+  });
+
+  it.each([
+    ["Domain から Infrastructure", "app/_domain/boundary-check.ts", 'export { getDb } from "@/app/_infrastructure/db";'],
+    ["Domain から相対パスの Application", "app/_domain/boundary-check.ts", 'export { listTodos } from "../_application/todos";'],
+    ["Domain から ORM", "app/_domain/boundary-check.ts", 'export { eq } from "drizzle-orm";'],
+    ["Domain から Next.js", "app/_domain/boundary-check.ts", 'export { redirect } from "next/navigation";'],
+    ["Application から ORM", "app/_application/boundary-check.ts", 'export { eq } from "drizzle-orm";'],
+    ["Application から Clerk", "app/_application/boundary-check.ts", 'export { auth } from "@clerk/nextjs/server";'],
+    ["Application から Cloudflare バインディング", "app/_application/boundary-check.ts", 'export { getCloudflareContext } from "@opennextjs/cloudflare";'],
+    ["Application から Next.js のキャッシュ操作", "app/_application/boundary-check.ts", 'export { revalidatePath } from "next/cache";'],
+    ["Infrastructure から Application", "app/_infrastructure/boundary-check.ts", 'export { listTodos } from "@/app/_application/todos";'],
+    ["Infrastructure から Next.js", "app/_infrastructure/boundary-check.ts", 'export { redirect } from "next/navigation";'],
+  ])("異常系: %s への依存は拒否される", async (_, filePath, code) => {
+    const [result] = await new ESLint().lintText(code, { filePath });
+    expect(result.messages).toContainEqual(
+      expect.objectContaining({ ruleId: "no-restricted-imports", severity: 2 })
+    );
+  });
+});

@@ -2,15 +2,10 @@
 
 import { useState, useTransition, useRef } from "react";
 import { PrimaryButton } from "@cf-next/ui";
-import { uploadProfileImage, deleteProfileImage } from "@/app/actions/profile";
 import Image from "next/image";
-
-type Profile = {
-  userId: string;
-  profileImageUrl: string | null;
-  createdAt: Date;
-  updatedAt: Date;
-} | null | undefined;
+import type { Profile } from "@/app/_domain/profile";
+import { validateImageFile } from "@/app/_domain/profile-image";
+import { uploadProfileImage, deleteProfileImage } from "@/app/actions/profile";
 
 export function ProfileForm({ profile }: { profile: Profile }) {
   const [isPending, startTransition] = useTransition();
@@ -22,16 +17,10 @@ export function ProfileForm({ profile }: { profile: Profile }) {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Validate file type
-      if (!file.type.startsWith("image/")) {
-        setError("Please select an image file");
-        return;
-      }
-
-      // Validate file size (max 5MB)
-      const MAX_SIZE = 5 * 1024 * 1024;
-      if (file.size > MAX_SIZE) {
-        setError("File size must be less than 5MB");
+      try {
+        validateImageFile(file);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Invalid image file");
         return;
       }
 
@@ -94,19 +83,19 @@ export function ProfileForm({ profile }: { profile: Profile }) {
         <h2 className="text-xl font-semibold mb-4">Profile Image</h2>
 
         {/* Current Profile Image */}
-        {profile?.profileImageUrl && !previewUrl && (
+        {profile.imageKey && !previewUrl && (
           <div className="mb-4">
             <p className="text-sm text-gray-600 mb-2">Current image:</p>
             <div className="w-32 h-32 rounded-full overflow-hidden bg-gray-100 relative">
               <Image
-                src={`/api/images/${profile.profileImageUrl}`}
+                src={`/api/images/${profile.imageKey}`}
                 alt="Profile"
                 fill
                 className="object-cover"
               />
             </div>
             <p className="text-xs text-gray-500 mt-2">
-              Image stored in R2: {profile.profileImageUrl}
+              Image stored in R2: {profile.imageKey}
             </p>
           </div>
         )}
@@ -176,7 +165,7 @@ export function ProfileForm({ profile }: { profile: Profile }) {
               {isPending ? "Uploading..." : "Upload Image"}
             </PrimaryButton>
 
-            {profile?.profileImageUrl && (
+            {profile.imageKey && (
               <button
                 type="button"
                 onClick={handleDelete}

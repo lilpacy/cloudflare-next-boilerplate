@@ -13,3 +13,18 @@ export type TodoInput = z.infer<typeof todoSchema>;
 
 export const updateTodoSchema = todoSchema.partial();
 export type UpdateTodoInput = z.infer<typeof updateTodoSchema>;
+
+export type Todo = {
+  id: string;
+  title: string;
+  description: string | null;
+  completed: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+export type TodoStats = {
+  total: number;
+  completed: number;
+  pending: number;
+};

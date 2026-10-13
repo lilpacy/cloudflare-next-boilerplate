@@ -1,6 +1,5 @@
-import { auth } from "@clerk/nextjs/server";
-import { redirect } from "next/navigation";
-import { getTodoById } from "@/app/actions/todos";
+import { getTodo } from "@/app/_application/todos";
+import { handlePageError } from "@/app/_lib/page-errors";
 import { EditTodoForm } from "./EditTodoForm";
 
 export const metadata = {
@@ -13,28 +12,8 @@ export default async function EditTodoPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { userId } = await auth();
   const { id } = await params;
-
-  if (!userId) {
-    redirect("/sign-in");
-  }
-
-  let todo;
-  try {
-    todo = await getTodoById(id);
-  } catch (error) {
-    return (
-      <div className="container mx-auto px-4 py-8 max-w-2xl">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-red-600 mb-4">Error</h1>
-          <p className="text-gray-600">
-            {error instanceof Error ? error.message : "Todo not found"}
-          </p>
-        </div>
-      </div>
-    );
-  }
+  const todo = await getTodo(id).catch(handlePageError);
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-2xl">

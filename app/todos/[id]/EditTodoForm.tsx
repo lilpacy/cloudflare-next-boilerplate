@@ -3,14 +3,8 @@
 import { useState, useTransition } from "react";
 import { PrimaryButton, TextInput, Textarea } from "@cf-next/ui";
 import { useRouter } from "next/navigation";
+import type { Todo } from "@/app/_domain/todo";
 import { updateTodo } from "@/app/actions/todos";
-
-type Todo = {
-  id: string;
-  title: string;
-  description: string | null;
-  completed: boolean;
-};
 
 export function EditTodoForm({ todo }: { todo: Todo }) {
   const [title, setTitle] = useState(todo.title);

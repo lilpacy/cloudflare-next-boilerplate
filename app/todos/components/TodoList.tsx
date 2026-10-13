@@ -2,17 +2,9 @@
 
 import Link from "next/link";
 import { format } from "date-fns";
-import { deleteTodo, toggleTodoCompleted } from "@/app/actions/todos";
 import { useState, useTransition } from "react";
-
-type Todo = {
-  id: string;
-  title: string;
-  description: string | null;
-  completed: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-};
+import type { Todo } from "@/app/_domain/todo";
+import { deleteTodo, toggleTodoCompleted } from "@/app/actions/todos";
 
 export function TodoList({ todos }: { todos: Todo[] }) {
   const [isPending, startTransition] = useTransition();
