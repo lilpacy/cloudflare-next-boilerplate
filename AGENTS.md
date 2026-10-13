@@ -1,7 +1,7 @@
 # Repository Guidelines
 
 ## Project Structure & Module Organization
-- `app/` hosts the Next.js App Router and is organized in four layers (UI / Application / Domain / Infrastructure). Read `ARCHITECTURE.md` before adding or moving server-side code; it defines which directory each kind of code belongs in and which imports are allowed. `lib/` and `app/actions/` are legacy locations being migrated; do not add to them.
+- `app/` hosts the Next.js App Router and is organized in four layers (UI / Application / Domain / Infrastructure). Read `ARCHITECTURE.md` before adding or moving server-side code; it defines which directory each kind of code belongs in and which imports are allowed (per-layer `no-restricted-imports` rules in `eslint.config.mjs` enforce them). Server Actions live next to their route as `app/<route>/actions.ts` and export mutations only.
 - Shared presentation-only React components live in `packages/ui`; keep Clerk, database and storage logic in the app. `pnpm lint` enforces Nx project boundaries and cross-project cycle restrictions.
 - Database migrations sit in `drizzle/`; keep SQL files in sync with generated metadata. Static assets belong in `public/`, and deployment wiring is captured by `open-next.config.ts`, `wrangler.jsonc` and `.github/workflows/deploy-preview.yml` (preview deploy on every `master` push) and `.github/workflows/deploy-production.yml` (manual production deploy from `master`).
 
@@ -18,7 +18,7 @@
 - Run ESLint before committing; add targeted `// eslint-disable-next-line` comments only when justified.
 
 ## Testing Guidelines
-- Vitest tests (`__tests__/`, `pnpm run test:run`) include sample rendering, the Nx dependency-boundary contract and the E2E resource fixture lifecycle; use Japanese behavior names for new tests. Keep boundary checks covering aliases, relative imports and project cycles.
+- Vitest tests (`__tests__/`, `pnpm run test:run`) include sample rendering, the Nx dependency-boundary contract and the E2E resource fixture lifecycle; use Japanese behavior names for new tests. Keep boundary checks covering aliases, relative imports, project cycles and the per-layer rules under `app/`.
 - Always run `pnpm run lint` and `pnpm run build` before pushing. For database changes, exercise migrations locally via `db:migrate:local` and seed data through the D1 shell commands. Playwright E2E tests live in `e2e/` (`pnpm run test:e2e`); see the README for Clerk test-instance requirements.
 
 ## Commit & Pull Request Guidelines

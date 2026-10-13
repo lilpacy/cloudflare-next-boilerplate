@@ -85,6 +85,18 @@ Ordered so that the biggest security gain (step 2) can ship as its own PR.
 - Whether a module that imports `server-only` can be imported from `proxy.ts`. To avoid the question, `proxy.ts` uses Clerk's `auth()` directly and does not import Infrastructure.
 - Whether `drizzle-orm` with `better-sqlite3` (already a devDependency) is a practical way to test Infrastructure modules without D1.
 
+## Amendments
+
+Recorded during the migration (PRs #16, #17 and the follow-up middleware/docs PR), 2026-10-14.
+
+| Plan item | Amendment | Reason |
+|---|---|---|
+| Step 4: rename `middleware.ts` to `proxy.ts` | Not renamed. Only the admin check was removed; the file keeps the Edge-runtime `clerkMiddleware` | README "Next.js 16 compatibility": the Node.js runtime used by `proxy.ts` is not supported by the OpenNext Cloudflare adapter. The first two open questions above stay open until the adapter supports it |
+| Code map: `app/<route>/_components/`, `app/_components/` | Existing `components/` directories are kept as is | A folder without `page.tsx` is already excluded from routing, so the private-folder prefix adds churn without effect |
+| Consequence: "Application unit tests mock Infrastructure modules" | Confirmed. Vitest resolves `server-only` to `__tests__/stubs/server-only.ts` (the real module throws outside React Server Components), and `server-only` is a declared dependency because the Nx `banTransitiveDependencies` rule rejects unlisted imports | Needed to import `app/_application/*` in tests at all |
+| Step 1: "delete unused `uploadImage`" | Done in step 1; the rest of `lib/r2` was removed in step 3/6 (PR #17) because the image route still used it | Keeps every PR buildable on its own |
+| Infrastructure testing (third open question) | Not pursued. Query semantics (ordering, owner scoping, aggregates) are covered only by the Playwright suite against the local D1; no `better-sqlite3` harness was added | Recorded as a known gap, not a decision against it |
+
 ## References
 
 - Next.js 16.3.8 bundled docs: `01-app/02-guides/data-security.md`, `01-app/02-guides/server-actions.md`, `01-app/01-getting-started/02-project-structure.md`, `01-app/03-api-reference/04-functions/unauthorized.md`

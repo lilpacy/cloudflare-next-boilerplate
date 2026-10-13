@@ -86,6 +86,27 @@ const eslintConfig = [
     },
   },
   {
+    files: ["app/**/*.{ts,tsx}"],
+    ignores: ["app/_domain/**", "app/_application/**", "app/_infrastructure/**"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["**/_infrastructure", "**/_infrastructure/**"],
+              message: "UI reaches data only through app/_application use cases.",
+            },
+            {
+              group: ["drizzle-orm", "drizzle-orm/**", "@clerk/nextjs/server", "@opennextjs/**"],
+              message: "SDK access belongs in app/_infrastructure; UI calls app/_application.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
     files: ["**/*.{ts,tsx,js,jsx}"],
     plugins: { "@nx": nxPlugin },
     rules: {

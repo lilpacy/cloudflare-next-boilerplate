@@ -4,9 +4,8 @@ This document describes the **current rules** for structuring application code u
 It is declarative: it says what the structure is and what is allowed, not how it was decided.
 Decision history lives in [`docs/adr/`](docs/adr/).
 
-> **Status:** target structure adopted by [ADR-0001](docs/adr/0001-layered-app-structure.md).
-> Existing code is still being migrated (see [Migration status](#migration-status)).
-> New code must follow this document; do not add to `lib/` or `app/actions/`.
+> **Status:** structure adopted by [ADR-0001](docs/adr/0001-layered-app-structure.md) and fully
+> applied (see [Migration status](#migration-status)). All code must follow this document.
 
 ## Layers
 
@@ -15,7 +14,7 @@ is what the Next.js docs call the Data Access Layer (DAL).
 
 | Layer | Directory | Responsibility | Runs on |
 |---|---|---|---|
-| UI | `app/` (routes, `_components/`, `_lib/`), `proxy.ts` | Everything bound to a URL or to Next.js APIs: pages, layouts, Client Components, Server Actions, Route Handlers, `revalidatePath`, `redirect`, turning domain errors into HTTP/UI results | server + client |
+| UI | `app/` (routes, `components/`, `_lib/`), `middleware.ts` | Everything bound to a URL or to Next.js APIs: pages, layouts, Client Components, Server Actions, Route Handlers, `revalidatePath`, `redirect`, turning domain errors into HTTP/UI results | server + client |
 | Application | `app/_application/` | One use case = one exported function. Authenticates and authorizes first, orchestrates Infrastructure, returns DTOs. Knows nothing about Next.js | server only |
 | Domain | `app/_domain/` | Pure types, zod schemas, constants, rules and error classes. No I/O, no framework imports | server + client |
 | Infrastructure | `app/_infrastructure/` | Cloudflare bindings (D1, R2), Clerk SDK, drizzle queries, `process.env`. Converts DB rows into Domain DTOs before returning | server only |
@@ -29,11 +28,11 @@ Dependencies point downward only. Domain depends on nothing.
 
 ```mermaid
 flowchart TB
-  subgraph UI["UI  app/ routes, _components, _lib, proxy.ts"]
+  subgraph UI["UI  app/ routes, components, _lib, middleware.ts"]
     P["page.tsx (Server Component)"]
-    C["_components/*.tsx (Client)"]
+    C["components/*.tsx (Client)"]
     A["actions.ts (use server)"]
-    R["route.ts / proxy.ts"]
+    R["route.ts / middleware.ts"]
   end
   subgraph APP["Application  app/_application/ (server-only)"]
     S["use cases: authn, authz, orchestration, DTOs"]
@@ -67,12 +66,13 @@ flowchart TB
 | `_infrastructure` | yes | **no** | yes | yes | **no** | **no** |
 | `_domain` | yes | **no** | **no** | **no** | **no** | **no** |
 
-Exception: `proxy.ts` may import `@clerk/nextjs/server` for `clerkMiddleware`.
+Exception: `middleware.ts` (repository root, outside `app/`) imports `@clerk/nextjs/server` for `clerkMiddleware`.
 
-Enforcement: per-layer `no-restricted-imports` rules in `eslint.config.mjs` and cases in
-`__tests__/module-boundaries.test.ts` are migration step 5 and **do not exist yet**. Today the only
-lint-enforced boundary is the Nx rule between the app and `packages/ui`. Until step 5 lands, this
-table is the source of truth; once it lands, the lint config is, and this table becomes a summary.
+Enforcement: per-layer `no-restricted-imports` rules in `eslint.config.mjs` (one block per layer,
+plus one for the rest of `app/`) and the cases in `__tests__/module-boundaries.test.ts`. The lint
+config is the source of truth; this table is a summary. `app/_application/` and
+`app/_infrastructure/` modules cannot be imported from Client Components because they start with
+`import "server-only"`.
 
 ## Public entry points
 
@@ -84,7 +84,7 @@ authentication and authorization still happen inside the Application layer.
 | `page.tsx`, `layout.tsx` | GET | Server Components call Application functions directly. They never go through a Server Action for reads |
 | `actions.ts` (`"use server"`) | POST from any page (an action is a POST against the page that invokes it) | Export **mutations only**. Keep them thin: parse input, call one Application function, `revalidatePath`, map errors |
 | `route.ts` | any HTTP method | Call Application, map errors to status codes |
-| `proxy.ts` | every matched request | Optimistic redirect to `/sign-in` only. No authorization decisions here; path matching cannot protect Server Actions |
+| `middleware.ts` | every matched request | Optimistic redirect to `/sign-in` only. No authorization decisions here; path matching cannot protect Server Actions |
 
 ## Code map
 
@@ -94,8 +94,8 @@ Directories only; file lists go stale.
 |---|---|---|
 | `app/<route>/page.tsx`, `layout.tsx`, `loading.tsx` | UI | Route files |
 | `app/<route>/actions.ts` | UI | Server Actions for that route |
-| `app/<route>/_components/` | UI | Client Components used by that route |
-| `app/_components/` | UI | Components shared across routes (navigation, footer, analytics) |
+| `app/<route>/components/` | UI | Client Components used by that route (a folder without `page.tsx` is not a route, so no `_` prefix is needed) |
+| `app/components/` | UI | Components shared across routes (navigation, footer, analytics) |
 | `app/_lib/` | UI | UI-side helpers, e.g. `runAction` that maps domain errors to `ActionResult` |
 | `app/_application/<feature>.ts` | Application | Use cases for one feature |
 | `app/_domain/<feature>.ts`, `errors.ts` | Domain | Schemas, DTO types, constants, error classes |
@@ -152,7 +152,8 @@ Application throws Domain error classes. The UI layer converts them at the entry
 | Domain is isomorphic (no `server-only`) | zod schemas and limits such as `MAX_IMAGE_SIZE` are shared between client-side instant validation and server-side final validation, so they are written once |
 | Application imports Infrastructure directly; no repository interfaces or DI | Two features do not justify ports. Unit-test Application with `vi.mock("@/app/_infrastructure/...")`. Introduce interfaces only when a second implementation actually exists |
 | `revalidatePath` / `redirect` live in the UI layer, not in Application | Which URL goes stale is a presentation concern. Application stays callable from cron routes, tests and future APIs without changes |
-| `proxy.ts` only redirects unauthenticated users; admin checks live in Application | Proxy matches on path, but actions are POSTed to whichever page invoked them, so path-based rules cannot enforce authorization |
+| `middleware.ts` only redirects unauthenticated users; admin checks live in Application | Middleware matches on path, but actions are POSTed to whichever page invoked them, so path-based rules cannot enforce authorization |
+| `middleware.ts` keeps its name instead of the Next 16 `proxy.ts` convention | `proxy.ts` runs on the Node.js runtime, which the OpenNext Cloudflare adapter does not support (see README). Revisit when the adapter does |
 
 ## Non-goals
 
@@ -162,15 +163,15 @@ Application throws Domain error classes. The UI layer converts them at the entry
 
 ## Migration status
 
-Tracked in [ADR-0001](docs/adr/0001-layered-app-structure.md). Until all steps are done, `lib/` and
-`app/actions/` still exist; treat them as legacy and move code out rather than adding to them.
+Tracked in [ADR-0001](docs/adr/0001-layered-app-structure.md). Completed; `lib/` and
+`app/actions/` no longer exist.
 
-- [ ] 1. Create `app/_domain/` and `app/_infrastructure/` (mostly moves from `lib/`); update `drizzle.config.ts`
-- [ ] 2. Move read functions into `app/_application/`; call them from Server Components (no actions for reads)
-- [ ] 3. Thin out mutation actions; add `app/_lib/action-result.ts`
-- [ ] 4. Rename `middleware.ts` to `proxy.ts`; drop the admin check from it
-- [ ] 5. Add per-layer `no-restricted-imports` rules and boundary tests
-- [ ] 6. Route `/api/images/[...key]` through Application with an ownership check
+- [x] 1. Create `app/_domain/` and `app/_infrastructure/` (mostly moves from `lib/`); update `drizzle.config.ts`
+- [x] 2. Move read functions into `app/_application/`; call them from Server Components (no actions for reads)
+- [x] 3. Thin out mutation actions; add `app/_lib/action-result.ts`
+- [x] 4. Drop the admin check from `middleware.ts` (the rename to `proxy.ts` is deferred; see the ADR amendments)
+- [x] 5. Add per-layer `no-restricted-imports` rules and boundary tests
+- [x] 6. Route `/api/images/[...key]` through Application with an ownership check
 
 ## References
 
