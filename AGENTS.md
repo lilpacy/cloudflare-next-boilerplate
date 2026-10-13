@@ -1,9 +1,8 @@
 # Repository Guidelines
 
 ## Project Structure & Module Organization
-- `app/` hosts the Next.js App Router; page-level logic lives in route folders (e.g., `app/blog`, `app/admin`) with shared UI in `app/components` and utilities in `app/actions`.
+- `app/` hosts the Next.js App Router and is organized in four layers (UI / Application / Domain / Infrastructure). Read `ARCHITECTURE.md` before adding or moving server-side code; it defines which directory each kind of code belongs in and which imports are allowed. `lib/` and `app/actions/` are legacy locations being migrated; do not add to them.
 - Shared presentation-only React components live in `packages/ui`; keep Clerk, database and storage logic in the app. `pnpm lint` enforces Nx project boundaries and cross-project cycle restrictions.
-- Domain helpers live under `lib/` (`lib/db` for Drizzle clients, `lib/schemas` for Zod contracts, `lib/utils` for shared helpers). Update these when adjusting data flows.
 - Database migrations sit in `drizzle/`; keep SQL files in sync with generated metadata. Static assets belong in `public/`, and deployment wiring is captured by `open-next.config.ts` and `wrangler.jsonc`.
 
 ## Build, Test, and Development Commands
