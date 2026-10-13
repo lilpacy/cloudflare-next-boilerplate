@@ -5,8 +5,9 @@ It is declarative: it says what the structure is and what is allowed, not how it
 Decision history lives in [`docs/adr/`](docs/adr/).
 
 > **Status:** layers adopted by [ADR-0001](docs/adr/0001-layered-app-structure.md); one directory
-> per layer under `src/` by [ADR-0002](docs/adr/0002-src-layer-directories.md). Both fully applied
-> (see [Migration status](#migration-status)). All code must follow this document.
+> per layer under `src/` by [ADR-0002](docs/adr/0002-src-layer-directories.md); table definitions
+> and migrations in `packages/database` by [ADR-0003](docs/adr/0003-database-package.md). All fully
+> applied (see [Migration status](#migration-status)). All code must follow this document.
 
 ## Layers
 
@@ -18,7 +19,7 @@ is what the Next.js docs call the Data Access Layer (DAL).
 | UI | `src/app/` (routes, `components/`, `_lib/`), `src/middleware.ts` | Everything bound to a URL or to Next.js APIs: pages, layouts, Client Components, Server Actions, Route Handlers, `revalidatePath`, `redirect`, turning domain errors into HTTP/UI results | server + client |
 | Application | `src/application/` | One use case = one exported function. Authenticates and authorizes first, orchestrates Infrastructure, returns DTOs. Knows nothing about Next.js | server only |
 | Domain | `src/domain/` | Pure types, zod schemas, constants, rules and error classes. No I/O, no framework imports | server + client |
-| Infrastructure | `src/infrastructure/` | Cloudflare bindings (D1, R2), Clerk SDK, drizzle queries, `process.env`. Converts DB rows into Domain DTOs before returning | server only |
+| Infrastructure | `src/infrastructure/` | Cloudflare bindings (D1, R2), Clerk SDK, drizzle queries, `process.env`. Converts DB rows into Domain DTOs before returning. Table definitions and migrations come from `packages/database` (`@cf-next/database`), which only this layer may import | server only |
 
 `src/application/` and `src/infrastructure/` modules start with `import "server-only"`.
 `src/app/` is the App Router directory; inside it, folders prefixed with `_` (such as `_lib/`) are
@@ -45,6 +46,9 @@ flowchart TB
     I2["todos.ts / users.ts (drizzle)"]
     I3["db.ts / storage.ts (bindings)"]
   end
+  subgraph PKG["packages/database  @cf-next/database"]
+    T["modules/*/schema.ts, createDb(d1), migrations/"]
+  end
   subgraph DOM["Domain  src/domain/ (isomorphic)"]
     D["schemas, DTO types, constants, errors"]
   end
@@ -60,19 +64,23 @@ flowchart TB
   P --> D
   S --> D
   I2 --> D
+  I2 --> T
+  I3 --> T
 ```
 
-| from \ to | `domain` | `application` | `infrastructure` | `drizzle-orm`, `@clerk/nextjs/server`, `@opennextjs/cloudflare` | `next/cache`, `next/navigation` | React client APIs |
+| from \ to | `domain` | `application` | `infrastructure` | `@cf-next/database`, `drizzle-orm`, `@clerk/nextjs/server`, `@opennextjs/cloudflare` | `next/cache`, `next/navigation` | React client APIs |
 |---|---|---|---|---|---|---|
 | UI | yes | yes (server files only) | **no** | **no** | yes | yes |
 | `application` | yes | yes | yes | **no** | **no** | **no** |
 | `infrastructure` | yes | **no** | yes | yes | **no** | **no** |
 | `domain` | yes | **no** | **no** | **no** | **no** | **no** |
+| `packages/database` | **no** | **no** | **no** | `drizzle-orm` only | **no** | **no** |
 
 Exception: `src/middleware.ts` imports `@clerk/nextjs/server` for `clerkMiddleware`, so it is not covered by the UI lint block.
 
 Enforcement: per-layer `no-restricted-imports` rules in `eslint.config.mjs` (one block per layer
-directory) and the cases in `__tests__/module-boundaries.test.ts`. The lint config is the source of
+directory), the Nx `depConstraints` for the `type:database` and `type:ui` projects, and the cases
+in `__tests__/module-boundaries.test.ts`. The lint config is the source of
 truth; this table is a summary. `src/application/` and `src/infrastructure/` modules cannot be
 imported from Client Components because they start with `import "server-only"`.
 
@@ -102,11 +110,14 @@ Directories only; file lists go stale.
 | `src/middleware.ts` | UI | Clerk sign-in redirect; location fixed by Next.js |
 | `src/application/<feature>.ts` | Application | Use cases for one feature |
 | `src/domain/<feature>.ts`, `errors.ts` | Domain | Schemas, DTO types, constants, error classes |
-| `src/infrastructure/db.ts`, `schema.ts` | Infrastructure | Drizzle client (memoized with `cache()`) and table definitions |
+| `src/infrastructure/db.ts` | Infrastructure | `getDb()`: looks up the D1 binding through OpenNext and memoizes `createDb()` per request with `cache()` |
 | `src/infrastructure/auth.ts` | Infrastructure | `getCurrentUserId()`, `isAdmin()`; the only reader of `ADMIN_EMAILS` |
 | `src/infrastructure/storage.ts` | Infrastructure | R2 bucket access |
 | `src/infrastructure/<feature>.ts` | Infrastructure | Queries for one feature; returns Domain DTOs, never raw rows |
 | `<module>.test.ts` next to its module | same as the module | Unit tests for that module; the module's layer rules apply. Cross-cutting tests live in `__tests__/` |
+| `packages/database/src/modules/<name>/schema.ts` | (outside; imported by Infrastructure only) | Table definitions for one module. Register each module in `packages/database/src/schema.ts` |
+| `packages/database/src/db.ts` | (outside) | `createDb(d1)`: opens the database from a D1 binding without OpenNext, for any Worker |
+| `packages/database/migrations/` | (outside) | drizzle-kit output (`pnpm run db:generate`); `wrangler.jsonc` `migrations_dir` points here. `packages/database/test/migrations.test.ts` fails when schema and migrations drift |
 | `packages/ui/` | (outside) | Presentation-only components; may not import app code (Nx boundary) |
 
 ## Where does new code go?
@@ -158,10 +169,11 @@ Application throws Domain error classes. The UI layer converts them at the entry
 | `revalidatePath` / `redirect` live in the UI layer, not in Application | Which URL goes stale is a presentation concern. Application stays callable from cron routes, tests and future APIs without changes |
 | `src/middleware.ts` only redirects unauthenticated users; admin checks live in Application | Middleware matches on path, but actions are POSTed to whichever page invoked them, so path-based rules cannot enforce authorization |
 | `src/middleware.ts` keeps its name instead of the Next 16 `proxy.ts` convention | `proxy.ts` runs on the Node.js runtime, which the OpenNext Cloudflare adapter does not support (see README). Revisit when the adapter does |
+| Table definitions live in `packages/database`, not in `src/infrastructure/` | Any Worker on the same D1 (cron, queue, scripts) needs the schema and migrations without Next.js. Queries stay in Infrastructure because they return Domain DTOs ([ADR-0003](docs/adr/0003-database-package.md)) |
 
 ## Non-goals
 
-- Layers are not separate Nx projects or packages. Revisit when a second app shares them.
+- Layers are not separate Nx projects or packages; `packages/database` holds table definitions and migrations, not a layer. Revisit the rest when a second app shares them.
 - No abstraction over D1/R2/Clerk beyond the Infrastructure modules. Swapping providers is not a design goal.
 - `unauthorized()` / `forbidden()` (experimental) are not adopted.
 
@@ -177,6 +189,9 @@ Tracked in [ADR-0001](docs/adr/0001-layered-app-structure.md). Completed; `lib/`
 - [x] 4. Drop the admin check from `middleware.ts` (the rename to `proxy.ts` is deferred; see the ADR amendments)
 - [x] 5. Add per-layer `no-restricted-imports` rules and boundary tests
 - [x] 6. Route `/api/images/[...key]` through Application with an ownership check
+
+[ADR-0003](docs/adr/0003-database-package.md): completed in one step; `src/infrastructure/schema.ts`,
+`drizzle.config.ts` and `drizzle/` at the root no longer exist.
 
 ## References
 

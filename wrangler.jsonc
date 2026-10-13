@@ -36,7 +36,7 @@
       "binding": "DB",
       "database_name": "my-app-db",
       "database_id": "YOUR_D1_DATABASE_ID_HERE",
-      "migrations_dir": "drizzle",
+      "migrations_dir": "packages/database/migrations",
     },
   ],
   "r2_buckets": [
@@ -72,7 +72,7 @@
           "binding": "DB",
           "database_name": "my-app-db-preview",
           "database_id": "YOUR_PREVIEW_D1_DATABASE_ID_HERE",
-          "migrations_dir": "drizzle",
+          "migrations_dir": "packages/database/migrations",
         },
       ],
       "r2_buckets": [

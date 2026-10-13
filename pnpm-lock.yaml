@@ -11,24 +11,27 @@ importers:
       '@aws-sdk/client-s3':
         specifier: ^3.899.0
         version: 3.899.0
+      '@cf-next/database':
+        specifier: workspace:*
+        version: link:packages/database
       '@cf-next/ui':
         specifier: workspace:*
         version: link:packages/ui
       '@clerk/nextjs':
         specifier: ^6.39.7
-        version: 6.39.7(next@16.3.8(@babel/core@7.29.7)(@playwright/test@1.60.0)(@types/node@20.19.18)(react-dom@19.1.9(react@19.1.9))(react@19.1.9)(sass@1.100.0))(react-dom@19.1.9(react@19.1.9))(react@19.1.9)
+        version: 6.39.7(next@16.3.8(@babel/core@7.28.6)(@playwright/test@1.60.0)(@types/node@20.19.18)(react-dom@19.1.9(react@19.1.9))(react@19.1.9)(sass@1.100.0))(react-dom@19.1.9(react@19.1.9))(react@19.1.9)
       '@opennextjs/cloudflare':
         specifier: ^1.20.10
-        version: 1.20.10(next@16.3.8(@babel/core@7.29.7)(@playwright/test@1.60.0)(@types/node@20.19.18)(react-dom@19.1.9(react@19.1.9))(react@19.1.9)(sass@1.100.0))(wrangler@4.150.0(@types/node@20.19.18))
+        version: 1.20.10(next@16.3.8(@babel/core@7.28.6)(@playwright/test@1.60.0)(@types/node@20.19.18)(react-dom@19.1.9(react@19.1.9))(react@19.1.9)(sass@1.100.0))(wrangler@4.150.0(@cloudflare/workers-types@5.20261013.1)(@types/node@20.19.18))
       date-fns:
         specifier: ^4.1.0
         version: 4.1.0
       drizzle-orm:
         specifier: ^0.45.4
-        version: 0.45.4(@types/better-sqlite3@7.6.13)(better-sqlite3@12.6.2)
+        version: 0.45.4(@cloudflare/workers-types@5.20261013.1)(@types/better-sqlite3@7.6.13)(better-sqlite3@12.6.2)
       next:
         specifier: ~16.3.8
-        version: 16.3.8(@babel/core@7.29.7)(@playwright/test@1.60.0)(@types/node@20.19.18)(react-dom@19.1.9(react@19.1.9))(react@19.1.9)(sass@1.100.0)
+        version: 16.3.8(@babel/core@7.28.6)(@playwright/test@1.60.0)(@types/node@20.19.18)(react-dom@19.1.9(react@19.1.9))(react@19.1.9)(sass@1.100.0)
       react:
         specifier: 19.1.9
         version: 19.1.9
@@ -60,9 +63,6 @@ importers:
       '@testing-library/react':
         specifier: ^16.3.1
         version: 16.3.2(@testing-library/dom@10.4.1)(@types/react-dom@19.1.9(@types/react@19.1.16))(@types/react@19.1.16)(react-dom@19.1.9(react@19.1.9))(react@19.1.9)
-      '@types/better-sqlite3':
-        specifier: ^7.6.13
-        version: 7.6.13
       '@types/node':
         specifier: ^20.19.18
         version: 20.19.18
@@ -78,12 +78,6 @@ importers:
       '@vitest/ui':
         specifier: ^4.0.17
         version: 4.0.17(vitest@4.0.17)
-      better-sqlite3:
-        specifier: ^12.6.0
-        version: 12.6.2
-      drizzle-kit:
-        specifier: ^0.31.11
-        version: 0.31.11
       eslint:
         specifier: ^9
         version: 9.36.0(jiti@2.7.0)
@@ -116,7 +110,32 @@ importers:
         version: 4.0.17(@types/node@20.19.18)(@vitest/ui@4.0.17)(happy-dom@20.3.4)(jiti@2.7.0)(lightningcss@1.32.0)(sass@1.100.0)(terser@5.36.0)(tsx@4.23.15)(yaml@2.9.1)
       wrangler:
         specifier: ^4.148.0
-        version: 4.150.0(@types/node@20.19.18)
+        version: 4.150.0(@cloudflare/workers-types@5.20261013.1)(@types/node@20.19.18)
+
+  packages/database:
+    dependencies:
+      drizzle-orm:
+        specifier: ^0.45.4
+        version: 0.45.4(@cloudflare/workers-types@5.20261013.1)(@types/better-sqlite3@7.6.13)(better-sqlite3@12.6.2)
+    devDependencies:
+      '@cloudflare/workers-types':
+        specifier: ^5.20261013.1
+        version: 5.20261013.1
+      '@types/better-sqlite3':
+        specifier: ^7.6.13
+        version: 7.6.13
+      '@types/node':
+        specifier: ^20.19.18
+        version: 20.19.18
+      better-sqlite3:
+        specifier: ^12.6.0
+        version: 12.6.2
+      drizzle-kit:
+        specifier: ^0.31.11
+        version: 0.31.11
+      vitest:
+        specifier: ^4.0.17
+        version: 4.0.17(@types/node@20.19.18)(@vitest/ui@4.0.17)(happy-dom@20.3.4)(jiti@2.7.0)(lightningcss@1.32.0)(sass@1.100.0)(terser@5.36.0)(tsx@4.23.15)(yaml@2.9.1)
 
   packages/ui:
     dependencies:
@@ -1250,6 +1269,9 @@ packages:
     engines: {node: '>=16'}
     cpu: [x64]
     os: [win32]
+
+  '@cloudflare/workers-types@5.20261013.1':
+    resolution: {integrity: sha512-0SfkM/MA+oSIAzFFmjr0wZLH54oeCtugaOn8GpJDBnerQiML+rOPq2W6j6bBGE51o+N4DOd0tvMruLmkAQzlpw==}
 
   '@cspotcode/source-map-support@0.8.1':
     resolution: {integrity: sha512-IchNf6dN4tHoMFIn/7OE8LWZ19Y6q/67Bmf6vnGREv8RSbBVb9LPJxEcnwrcwX6ixSvaiGoomAUvu4YSxXrVgw==}
@@ -5374,11 +5396,6 @@ packages:
     resolution: {integrity: sha512-BR7VvDCVHO+q2xBEWskxS6DJE1qRnb7DxzUrogb71CWoSficBxYsiAGd+Kl0mmq/MprG9yArRkyrQxTO6XjMzA==}
     hasBin: true
 
-  semver@7.7.2:
-    resolution: {integrity: sha512-RF0Fw+rO5AMf9MAyaRXI4AV0Ulj5lMHqVxxdSgiVbixSCXoEmmX/jk0CuJw4+3SqroYO9VoUh+HcuJivvtJemA==}
-    engines: {node: '>=10'}
-    hasBin: true
-
   semver@7.8.5:
     resolution: {integrity: sha512-Y7/KDsb8LjooZpwaqGyulO6DQlksgCncchHGk+sZIY4SBvUocMBEFH5Ur1fI4dV+Jvl0w6cjvucaIi40puRioA==}
     engines: {node: '>=10'}
@@ -7946,13 +7963,13 @@ snapshots:
       react-dom: 19.1.9(react@19.1.9)
       tslib: 2.8.1
 
-  '@clerk/nextjs@6.39.7(next@16.3.8(@babel/core@7.29.7)(@playwright/test@1.60.0)(@types/node@20.19.18)(react-dom@19.1.9(react@19.1.9))(react@19.1.9)(sass@1.100.0))(react-dom@19.1.9(react@19.1.9))(react@19.1.9)':
+  '@clerk/nextjs@6.39.7(next@16.3.8(@babel/core@7.28.6)(@playwright/test@1.60.0)(@types/node@20.19.18)(react-dom@19.1.9(react@19.1.9))(react@19.1.9)(sass@1.100.0))(react-dom@19.1.9(react@19.1.9))(react@19.1.9)':
     dependencies:
       '@clerk/backend': 2.33.7(react-dom@19.1.9(react@19.1.9))(react@19.1.9)
       '@clerk/clerk-react': 5.61.10(react-dom@19.1.9(react@19.1.9))(react@19.1.9)
       '@clerk/shared': 3.48.0(react-dom@19.1.9(react@19.1.9))(react@19.1.9)
       '@clerk/types': 4.101.27(react-dom@19.1.9(react@19.1.9))(react@19.1.9)
-      next: 16.3.8(@babel/core@7.29.7)(@playwright/test@1.60.0)(@types/node@20.19.18)(react-dom@19.1.9(react@19.1.9))(react@19.1.9)(sass@1.100.0)
+      next: 16.3.8(@babel/core@7.28.6)(@playwright/test@1.60.0)(@types/node@20.19.18)(react-dom@19.1.9(react@19.1.9))(react@19.1.9)(sass@1.100.0)
       react: 19.1.9
       react-dom: 19.1.9(react@19.1.9)
       server-only: 0.0.1
@@ -8020,6 +8037,8 @@ snapshots:
 
   '@cloudflare/workerd-windows-64@1.20261006.1':
     optional: true
+
+  '@cloudflare/workers-types@5.20261013.1': {}
 
   '@cspotcode/source-map-support@0.8.1':
     dependencies:
@@ -8786,7 +8805,7 @@ snapshots:
       - '@swc-node/register'
       - '@swc/core'
 
-  '@opennextjs/aws@4.1.9(next@16.3.8(@babel/core@7.29.7)(@playwright/test@1.60.0)(@types/node@20.19.18)(react-dom@19.1.9(react@19.1.9))(react@19.1.9)(sass@1.100.0))':
+  '@opennextjs/aws@4.1.9(next@16.3.8(@babel/core@7.28.6)(@playwright/test@1.60.0)(@types/node@20.19.18)(react-dom@19.1.9(react@19.1.9))(react@19.1.9)(sass@1.100.0))':
     dependencies:
       '@ast-grep/napi': 0.45.3
       '@aws-sdk/client-cloudfront': 3.984.0
@@ -8802,26 +8821,26 @@ snapshots:
       cookie: 1.1.1
       esbuild: 0.28.2
       express: 5.2.1
-      next: 16.3.8(@babel/core@7.29.7)(@playwright/test@1.60.0)(@types/node@20.19.18)(react-dom@19.1.9(react@19.1.9))(react@19.1.9)(sass@1.100.0)
+      next: 16.3.8(@babel/core@7.28.6)(@playwright/test@1.60.0)(@types/node@20.19.18)(react-dom@19.1.9(react@19.1.9))(react@19.1.9)(sass@1.100.0)
       path-to-regexp: 6.3.0
       urlpattern-polyfill: 10.1.0
       yaml: 2.9.1
     transitivePeerDependencies:
       - supports-color
 
-  '@opennextjs/cloudflare@1.20.10(next@16.3.8(@babel/core@7.29.7)(@playwright/test@1.60.0)(@types/node@20.19.18)(react-dom@19.1.9(react@19.1.9))(react@19.1.9)(sass@1.100.0))(wrangler@4.150.0(@types/node@20.19.18))':
+  '@opennextjs/cloudflare@1.20.10(next@16.3.8(@babel/core@7.28.6)(@playwright/test@1.60.0)(@types/node@20.19.18)(react-dom@19.1.9(react@19.1.9))(react@19.1.9)(sass@1.100.0))(wrangler@4.150.0(@cloudflare/workers-types@5.20261013.1)(@types/node@20.19.18))':
     dependencies:
       '@ast-grep/napi': 0.45.3
       '@dotenvx/dotenvx': 2.34.2
-      '@opennextjs/aws': 4.1.9(next@16.3.8(@babel/core@7.29.7)(@playwright/test@1.60.0)(@types/node@20.19.18)(react-dom@19.1.9(react@19.1.9))(react@19.1.9)(sass@1.100.0))
+      '@opennextjs/aws': 4.1.9(next@16.3.8(@babel/core@7.28.6)(@playwright/test@1.60.0)(@types/node@20.19.18)(react-dom@19.1.9(react@19.1.9))(react@19.1.9)(sass@1.100.0))
       ci-info: 4.4.0
       cloudflare: 4.5.0
       comment-json: 4.6.2
       enquirer: 2.4.1
       glob: 13.0.6
-      next: 16.3.8(@babel/core@7.29.7)(@playwright/test@1.60.0)(@types/node@20.19.18)(react-dom@19.1.9(react@19.1.9))(react@19.1.9)(sass@1.100.0)
+      next: 16.3.8(@babel/core@7.28.6)(@playwright/test@1.60.0)(@types/node@20.19.18)(react-dom@19.1.9(react@19.1.9))(react@19.1.9)(sass@1.100.0)
       ts-tqdm: 0.8.6
-      wrangler: 4.150.0(@types/node@20.19.18)
+      wrangler: 4.150.0(@cloudflare/workers-types@5.20261013.1)(@types/node@20.19.18)
       yargs: 18.2.0
     transitivePeerDependencies:
       - encoding
@@ -10393,7 +10412,8 @@ snapshots:
 
   dequal@2.0.3: {}
 
-  detect-libc@2.1.1: {}
+  detect-libc@2.1.1:
+    optional: true
 
   detect-libc@2.1.2: {}
 
@@ -10424,8 +10444,9 @@ snapshots:
       esbuild: 0.25.12
       tsx: 4.23.15
 
-  drizzle-orm@0.45.4(@types/better-sqlite3@7.6.13)(better-sqlite3@12.6.2):
+  drizzle-orm@0.45.4(@cloudflare/workers-types@5.20261013.1)(@types/better-sqlite3@7.6.13)(better-sqlite3@12.6.2):
     optionalDependencies:
+      '@cloudflare/workers-types': 5.20261013.1
       '@types/better-sqlite3': 7.6.13
       better-sqlite3: 12.6.2
 
@@ -10705,8 +10726,8 @@ snapshots:
       '@next/eslint-plugin-next': 16.3.8(eslint@9.36.0(jiti@2.7.0))
       eslint: 9.36.0(jiti@2.7.0)
       eslint-import-resolver-node: 0.3.9
-      eslint-import-resolver-typescript: 3.10.1(eslint-plugin-import@2.32.0)(eslint@9.36.0(jiti@2.7.0))
-      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.71.2(eslint@9.36.0(jiti@2.7.0))(typescript@5.9.2))(eslint-import-resolver-typescript@3.10.1)(eslint@9.36.0(jiti@2.7.0))
+      eslint-import-resolver-typescript: 3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.71.2(eslint@9.36.0(jiti@2.7.0))(typescript@5.9.2))(eslint@9.36.0(jiti@2.7.0)))(eslint@9.36.0(jiti@2.7.0))
+      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.71.2(eslint@9.36.0(jiti@2.7.0))(typescript@5.9.2))(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.71.2(eslint@9.36.0(jiti@2.7.0))(typescript@5.9.2))(eslint@9.36.0(jiti@2.7.0)))(eslint@9.36.0(jiti@2.7.0)))(eslint@9.36.0(jiti@2.7.0))
       eslint-plugin-jsx-a11y: 6.10.2(eslint@9.36.0(jiti@2.7.0))
       eslint-plugin-react: 7.37.5(eslint@9.36.0(jiti@2.7.0))
       eslint-plugin-react-hooks: 7.1.1(eslint@9.36.0(jiti@2.7.0))
@@ -10728,7 +10749,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0)(eslint@9.36.0(jiti@2.7.0)):
+  eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.71.2(eslint@9.36.0(jiti@2.7.0))(typescript@5.9.2))(eslint@9.36.0(jiti@2.7.0)))(eslint@9.36.0(jiti@2.7.0)):
     dependencies:
       '@nolyfill/is-core-module': 1.0.39
       debug: 4.4.3
@@ -10739,22 +10760,22 @@ snapshots:
       tinyglobby: 0.2.15
       unrs-resolver: 1.11.1
     optionalDependencies:
-      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.71.2(eslint@9.36.0(jiti@2.7.0))(typescript@5.9.2))(eslint-import-resolver-typescript@3.10.1)(eslint@9.36.0(jiti@2.7.0))
+      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.71.2(eslint@9.36.0(jiti@2.7.0))(typescript@5.9.2))(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.71.2(eslint@9.36.0(jiti@2.7.0))(typescript@5.9.2))(eslint@9.36.0(jiti@2.7.0)))(eslint@9.36.0(jiti@2.7.0)))(eslint@9.36.0(jiti@2.7.0))
     transitivePeerDependencies:
       - supports-color
 
-  eslint-module-utils@2.12.1(@typescript-eslint/parser@8.71.2(eslint@9.36.0(jiti@2.7.0))(typescript@5.9.2))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.10.1)(eslint@9.36.0(jiti@2.7.0)):
+  eslint-module-utils@2.12.1(@typescript-eslint/parser@8.71.2(eslint@9.36.0(jiti@2.7.0))(typescript@5.9.2))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.71.2(eslint@9.36.0(jiti@2.7.0))(typescript@5.9.2))(eslint@9.36.0(jiti@2.7.0)))(eslint@9.36.0(jiti@2.7.0)))(eslint@9.36.0(jiti@2.7.0)):
     dependencies:
       debug: 3.2.7
     optionalDependencies:
       '@typescript-eslint/parser': 8.71.2(eslint@9.36.0(jiti@2.7.0))(typescript@5.9.2)
       eslint: 9.36.0(jiti@2.7.0)
       eslint-import-resolver-node: 0.3.9
-      eslint-import-resolver-typescript: 3.10.1(eslint-plugin-import@2.32.0)(eslint@9.36.0(jiti@2.7.0))
+      eslint-import-resolver-typescript: 3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.71.2(eslint@9.36.0(jiti@2.7.0))(typescript@5.9.2))(eslint@9.36.0(jiti@2.7.0)))(eslint@9.36.0(jiti@2.7.0))
     transitivePeerDependencies:
       - supports-color
 
-  eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.71.2(eslint@9.36.0(jiti@2.7.0))(typescript@5.9.2))(eslint-import-resolver-typescript@3.10.1)(eslint@9.36.0(jiti@2.7.0)):
+  eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.71.2(eslint@9.36.0(jiti@2.7.0))(typescript@5.9.2))(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.71.2(eslint@9.36.0(jiti@2.7.0))(typescript@5.9.2))(eslint@9.36.0(jiti@2.7.0)))(eslint@9.36.0(jiti@2.7.0)))(eslint@9.36.0(jiti@2.7.0)):
     dependencies:
       '@rtsao/scc': 1.1.0
       array-includes: 3.1.9
@@ -10765,7 +10786,7 @@ snapshots:
       doctrine: 2.1.0
       eslint: 9.36.0(jiti@2.7.0)
       eslint-import-resolver-node: 0.3.9
-      eslint-module-utils: 2.12.1(@typescript-eslint/parser@8.71.2(eslint@9.36.0(jiti@2.7.0))(typescript@5.9.2))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.10.1)(eslint@9.36.0(jiti@2.7.0))
+      eslint-module-utils: 2.12.1(@typescript-eslint/parser@8.71.2(eslint@9.36.0(jiti@2.7.0))(typescript@5.9.2))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.71.2(eslint@9.36.0(jiti@2.7.0))(typescript@5.9.2))(eslint@9.36.0(jiti@2.7.0)))(eslint@9.36.0(jiti@2.7.0)))(eslint@9.36.0(jiti@2.7.0))
       hasown: 2.0.2
       is-core-module: 2.16.1
       is-glob: 4.0.3
@@ -11656,7 +11677,7 @@ snapshots:
 
   negotiator@1.0.0: {}
 
-  next@16.3.8(@babel/core@7.29.7)(@playwright/test@1.60.0)(@types/node@20.19.18)(react-dom@19.1.9(react@19.1.9))(react@19.1.9)(sass@1.100.0):
+  next@16.3.8(@babel/core@7.28.6)(@playwright/test@1.60.0)(@types/node@20.19.18)(react-dom@19.1.9(react@19.1.9))(react@19.1.9)(sass@1.100.0):
     dependencies:
       '@next/env': 16.3.8
       '@swc/helpers': 0.5.23
@@ -11665,7 +11686,7 @@ snapshots:
       postcss: 8.5.23
       react: 19.1.9
       react-dom: 19.1.9(react@19.1.9)
-      styled-jsx: 5.1.6(@babel/core@7.29.7)(react@19.1.9)
+      styled-jsx: 5.1.6(@babel/core@7.28.6)(react@19.1.9)
     optionalDependencies:
       '@next/swc-darwin-arm64': 16.3.8
       '@next/swc-darwin-x64': 16.3.8
@@ -11685,7 +11706,7 @@ snapshots:
 
   node-abi@3.87.0:
     dependencies:
-      semver: 7.7.2
+      semver: 7.8.5
 
   node-addon-api@7.1.1:
     optional: true
@@ -11984,7 +12005,7 @@ snapshots:
 
   prebuild-install@7.1.3:
     dependencies:
-      detect-libc: 2.1.1
+      detect-libc: 2.1.2
       expand-template: 2.0.3
       github-from-package: 0.0.0
       minimist: 1.2.8
@@ -12227,8 +12248,6 @@ snapshots:
   scheduler@0.26.0: {}
 
   semver@6.3.1: {}
-
-  semver@7.7.2: {}
 
   semver@7.8.5: {}
 
@@ -12503,12 +12522,12 @@ snapshots:
 
   strnum@2.1.2: {}
 
-  styled-jsx@5.1.6(@babel/core@7.29.7)(react@19.1.9):
+  styled-jsx@5.1.6(@babel/core@7.28.6)(react@19.1.9):
     dependencies:
       client-only: 0.0.1
       react: 19.1.9
     optionalDependencies:
-      '@babel/core': 7.29.7
+      '@babel/core': 7.28.6
 
   supports-color@10.2.2: {}
 
@@ -12895,7 +12914,7 @@ snapshots:
       '@cloudflare/workerd-linux-arm64': 1.20261006.1
       '@cloudflare/workerd-windows-64': 1.20261006.1
 
-  wrangler@4.150.0(@types/node@20.19.18):
+  wrangler@4.150.0(@cloudflare/workers-types@5.20261013.1)(@types/node@20.19.18):
     dependencies:
       '@cloudflare/kv-asset-handler': 0.5.0
       '@cloudflare/unenv-preset': 2.16.2(unenv@2.0.0-rc.24)(workerd@1.20261006.1)
@@ -12906,6 +12925,7 @@ snapshots:
       unenv: 2.0.0-rc.24
       workerd: 1.20261006.1
     optionalDependencies:
+      '@cloudflare/workers-types': 5.20261013.1
       fsevents: 2.3.3
     transitivePeerDependencies:
       - '@types/node'

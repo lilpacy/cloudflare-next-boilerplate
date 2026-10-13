@@ -41,6 +41,10 @@ jobs:
           mask(config);
           // CI builds explicitly before migrations; skip Wrangler's custom rebuild.
           delete config.build;
+          // Migrations live in the repository, not in the secret: point every D1 binding at them.
+          for (const db of [...config.d1_databases, ...(config.env?.preview?.d1_databases ?? [])]) {
+            db.migrations_dir = 'packages/database/migrations';
+          }
           assert(config.name === 'my-app' && config.vars.ENV_NAME === 'production');
           assert(config.d1_databases.length === 1 && config.d1_databases[0].database_name === 'my-app-db');
           assert(config.d1_databases[0].database_id && !config.d1_databases[0].database_id.includes('YOUR_'));

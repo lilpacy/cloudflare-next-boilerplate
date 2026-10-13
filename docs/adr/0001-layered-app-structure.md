@@ -2,6 +2,7 @@
 
 - **Status:** Accepted (applies to new code immediately; existing code is migrated per [ARCHITECTURE.md](../../ARCHITECTURE.md#migration-status))
 - **Superseded in part by:** [ADR-0002](0002-src-layer-directories.md) moves the layers from `app/_<layer>/` to `src/<layer>/`. Paths below are as of this decision
+- **Amended by:** [ADR-0003](0003-database-package.md) moves table definitions and migrations into `packages/database`, revisiting the deferred "Nx library projects" alternative for the schema only
 - **Date:** 2026-10-14
 - **Deciders:** lilpacy
 

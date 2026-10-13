@@ -121,11 +121,12 @@ Visit [http://localhost:3000](http://localhost:3000) to see your app!
 │   ├── domain/            # DTO types, zod schemas, constants, error classes
 │   ├── infrastructure/    # D1/drizzle, R2, Clerk SDK access (server-only)
 │   └── middleware.ts      # UI layer: Clerk sign-in redirect (authorization lives in src/application)
-├── packages/ui/           # Shared presentation-only components (@cf-next/ui)
+├── packages/
+│   ├── database/          # @cf-next/database: table definitions (src/modules/*), createDb(d1), migrations/
+│   └── ui/                # @cf-next/ui: shared presentation-only components
 ├── __tests__/            # Cross-cutting Vitest tests (unit tests sit next to their module as *.test.ts)
 ├── e2e/                  # Playwright specs, page objects and fixtures
 ├── .github/workflows/     # Production deploy workflow
-├── drizzle/              # Database migrations
 ├── public/               # Static assets
 ├── open-next.config.ts   # OpenNext Cloudflare adapter config
 ├── wrangler.jsonc        # Cloudflare Workers config
@@ -139,7 +140,7 @@ Visit [http://localhost:3000](http://localhost:3000) to see your app!
 - `pnpm run build` - Build for production
 - `pnpm run start` - Start production server locally
 - `pnpm run lint` - Run ESLint
-- `pnpm run type-check` - Run TypeScript type checking
+- `pnpm run type-check` - Run TypeScript type checking (app, `@cf-next/ui`, `@cf-next/database`)
 - `pnpm run graph` - Open the Nx project graph
 - `pnpm run cf:typegen` - Regenerate `cloudflare-env.d.ts` from `wrangler.jsonc`
 
@@ -153,7 +154,7 @@ Visit [http://localhost:3000](http://localhost:3000) to see your app!
 ### Database (D1)
 - `pnpm run db:create` - Create production database
 - `pnpm run db:create:preview` - Create preview database
-- `pnpm run db:generate` - Generate a migration from `src/infrastructure/schema.ts`
+- `pnpm run db:generate` - Generate a migration from `packages/database/src/schema.ts` into `packages/database/migrations/`
 - `pnpm run db:migrate:local` - Run migrations locally
 - `pnpm run db:migrate:prod` - Run migrations on production
 - `pnpm run db:migrate:preview` - Run migrations on preview
@@ -194,25 +195,35 @@ the build environment. Set `CLERK_SECRET_KEY` in `.dev.vars` for local Workers
 preview and in `.env.local` for `next dev`. Use `pnpm run preview:cf` to verify
 D1/R2 bindings in Workers; `pnpm run start` runs the Next.js Node server.
 
-## Workspace UI and dependency boundaries
+## Workspace packages and dependency boundaries
 
-The Next.js application stays at the repository root. `packages/ui` is the
-private `@cf-next/ui` React package. The homepage uses its `Card`, and the Todo
-and profile forms use its `PrimaryButton`, `TextInput` and `Textarea`.
-The package exports TypeScript source, and Next.js processes it through
-`transpilePackages`. It has no independent build/watch process.
+The Next.js application stays at the repository root. Two private workspace
+packages sit in `packages/`; both export TypeScript source, and Next.js processes
+them through `transpilePackages`. Neither has an independent build/watch process.
+
+- `@cf-next/ui` (`packages/ui`): presentation-only React components. The homepage
+  uses its `Card`, and the Todo and profile forms use its `PrimaryButton`,
+  `TextInput` and `Textarea`.
+- `@cf-next/database` (`packages/database`): drizzle table definitions
+  (`src/modules/<name>/schema.ts`, registered in `src/schema.ts`), `createDb(d1)`
+  and the `migrations/` directory that `wrangler d1 migrations apply` reads. It
+  depends on `drizzle-orm` only, so a cron Worker or a script can open the same
+  D1 with `createDb(env.DB)` without Next.js. Only `src/infrastructure/` may
+  import it. `packages/database/test/migrations.test.ts` applies the migrations
+  to an in-memory SQLite and fails when they drift from the schema.
 
 - `pnpm dev`: start the application; edits in `packages/ui/src` use Fast Refresh.
-- `pnpm graph`: open the Nx project graph (`web` → `ui`).
+- `pnpm graph`: open the Nx project graph (`web` → `ui`, `web` → `database`).
 - `pnpm exec nx graph --file=.nx/project-graph.json`: export the graph as JSON.
-- `pnpm type-check`: check the app and the standalone UI package.
+- `pnpm type-check`: check the app and both packages.
 - `pnpm lint`: generate a fresh Nx graph, then run ESLint and boundary checks.
 - `pnpm test:run`: run the existing tests and the dependency-boundary contract test.
 
-The `type:ui` project cannot import the app, even through `@/` aliases, relative
-paths, re-exports, dynamic imports, or require calls. It also cannot import the
-app's Clerk, Drizzle, AWS storage SDK or OpenNext binding packages. Cross-project
-cycles are rejected. Existing aliases within the app remain allowed; file-level
+The `type:ui` project cannot import the app or `@cf-next/database`, even through
+`@/` aliases, relative paths, re-exports, dynamic imports, or require calls. It
+also cannot import the app's Clerk, Drizzle, AWS storage SDK or OpenNext binding
+packages. The `type:database` project cannot import any other project, Next.js,
+React or the SDKs. Cross-project cycles are rejected. Existing aliases within the app remain allowed; file-level
 cycles within one project are not checked by this project-boundary rule
 ([follow-up LIL-583](https://linear.app/lilpacy/issue/LIL-583)).
 
@@ -362,7 +373,7 @@ Config string values are masked in job logs. Keep the matching Clerk test-instan
 config or GitHub build environment. Existing Worker secrets are preserved by
 deployment.
 
-Commit generated SQL migrations under `drizzle/`; CI applies only migrations not
+Commit generated SQL migrations under `packages/database/migrations/`; CI applies only migrations not
 recorded in D1's migration history. Keep pre-deploy migrations compatible with the
 currently running code (for example, add nullable columns). Remove or rename used
 columns only in a later migration after deploying code that no longer depends on
@@ -424,7 +435,7 @@ If you want to start fresh without the Todo example:
 
 1. Delete `src/app/todos/` directory
 2. Delete `src/application/todos.ts`, `src/infrastructure/todos.ts` and `src/domain/todo.ts`
-3. Update `src/infrastructure/schema.ts` to remove the todos table
+3. Delete `packages/database/src/modules/todos/` and its line in `packages/database/src/schema.ts`
 4. Create new migration: `pnpm run db:generate`
 5. Update navigation in `src/app/components/navigation.tsx`
 6. Update the admin dashboard (`src/app/admin/page.tsx`), which shows Todo stats
@@ -432,7 +443,7 @@ If you want to start fresh without the Todo example:
 
 ### Adding New Features
 
-1. Define database schema in `src/infrastructure/schema.ts`
+1. Define tables in `packages/database/src/modules/<name>/schema.ts` and register the module in `packages/database/src/schema.ts`
 2. Generate migration: `pnpm run db:generate`
 3. Create validation schemas and DTO types in `src/domain/`
 4. Add queries in `src/infrastructure/` and use cases in `src/application/` (see `ARCHITECTURE.md`)
