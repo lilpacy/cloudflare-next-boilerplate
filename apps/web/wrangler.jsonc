@@ -35,8 +35,8 @@
     {
       "binding": "DB",
       "database_name": "my-app-db",
-      "database_id": "YOUR_D1_DATABASE_ID_HERE",
-      "migrations_dir": "packages/database/migrations",
+      "database_id": "e3087d74-d6e4-4492-b29d-0e7f1205b911",
+      "migrations_dir": "../../packages/database/migrations",
     },
   ],
   "r2_buckets": [
@@ -50,7 +50,7 @@
     },
   ],
   "vars": {
-    "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY": "YOUR_CLERK_PUBLISHABLE_KEY_HERE",
+    "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY": "pk_test_bGlrZWQtbXVsZS04Ni5jbGVyay5hY2NvdW50cy5kZXYk",
     "ENV_NAME": "production",
     "NEXT_PUBLIC_BASE_URL": "https://your-domain.com",
     "NEXT_PUBLIC_GOOGLE_ANALYTICS_ID": "",
@@ -72,7 +72,7 @@
           "binding": "DB",
           "database_name": "my-app-db-preview",
           "database_id": "YOUR_PREVIEW_D1_DATABASE_ID_HERE",
-          "migrations_dir": "packages/database/migrations",
+          "migrations_dir": "../../packages/database/migrations",
         },
       ],
       "r2_buckets": [

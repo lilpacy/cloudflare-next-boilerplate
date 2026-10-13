@@ -43,7 +43,7 @@ jobs:
           delete config.build;
           // Migrations live in the repository, not in the secret: point every D1 binding at them.
           for (const db of [...config.d1_databases, ...(config.env?.preview?.d1_databases ?? [])]) {
-            db.migrations_dir = 'packages/database/migrations';
+            db.migrations_dir = '../../packages/database/migrations';
           }
           const preview = config.env?.preview;
           assert(preview?.name === 'my-app-preview' && preview.vars.ENV_NAME === 'preview');
@@ -61,11 +61,12 @@ jobs:
             assert(/^[A-Z][A-Z0-9_]*$/.test(key) && typeof value === 'string' && !/[\r\n]/.test(value));
             return `${key}=${value}\n`;
           }).join('');
-          fs.writeFileSync('wrangler.jsonc', JSON.stringify(config));
+          fs.writeFileSync('apps/web/wrangler.jsonc', JSON.stringify(config));
           fs.appendFileSync(process.env.GITHUB_ENV, vars);
           NODE
       - run: pnpm run lint
       - name: Build preview Worker
+        working-directory: apps/web
         run: pnpm exec opennextjs-cloudflare build --env preview
       - name: Migrate preview database
         run: pnpm run db:migrate:preview
@@ -73,6 +74,7 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       - name: Deploy preview Worker
+        working-directory: apps/web
         run: pnpm exec opennextjs-cloudflare deploy --env preview
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}

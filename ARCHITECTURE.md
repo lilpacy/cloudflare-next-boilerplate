@@ -6,7 +6,9 @@ Decision history lives in [`docs/adr/`](docs/adr/).
 
 > **Status:** layers adopted by [ADR-0001](docs/adr/0001-layered-app-structure.md); one directory
 > per layer under `src/` by [ADR-0002](docs/adr/0002-src-layer-directories.md); table definitions
-> and migrations in `packages/database` by [ADR-0003](docs/adr/0003-database-package.md). All fully
+> and migrations in `packages/database` by [ADR-0003](docs/adr/0003-database-package.md); the Next.js
+> app (and its `src/`) moved into `apps/web/`, managed by Nx, by
+> [ADR-0004](docs/adr/0004-apps-web-nx-layout.md). All fully
 > applied (see [Migration status](#migration-status)). All code must follow this document.
 
 ## Layers
@@ -16,14 +18,14 @@ is what the Next.js docs call the Data Access Layer (DAL).
 
 | Layer | Directory | Responsibility | Runs on |
 |---|---|---|---|
-| UI | `src/app/` (routes, `components/`, `_lib/`), `src/middleware.ts` | Everything bound to a URL or to Next.js APIs: pages, layouts, Client Components, Server Actions, Route Handlers, `revalidatePath`, `redirect`, turning domain errors into HTTP/UI results | server + client |
-| Application | `src/application/` | One use case = one exported function. Authenticates and authorizes first, orchestrates Infrastructure, returns DTOs. Knows nothing about Next.js | server only |
-| Domain | `src/domain/` | Pure types, zod schemas, constants, rules and error classes. No I/O, no framework imports | server + client |
-| Infrastructure | `src/infrastructure/` | Cloudflare bindings (D1, R2), Clerk SDK, drizzle queries, `process.env`. Converts DB rows into Domain DTOs before returning. Table definitions and migrations come from `packages/database` (`@cf-next/database`), which only this layer may import | server only |
+| UI | `apps/web/src/app/` (routes, `components/`, `_lib/`), `apps/web/src/middleware.ts` | Everything bound to a URL or to Next.js APIs: pages, layouts, Client Components, Server Actions, Route Handlers, `revalidatePath`, `redirect`, turning domain errors into HTTP/UI results | server + client |
+| Application | `apps/web/src/application/` | One use case = one exported function. Authenticates and authorizes first, orchestrates Infrastructure, returns DTOs. Knows nothing about Next.js | server only |
+| Domain | `apps/web/src/domain/` | Pure types, zod schemas, constants, rules and error classes. No I/O, no framework imports | server + client |
+| Infrastructure | `apps/web/src/infrastructure/` | Cloudflare bindings (D1, R2), Clerk SDK, drizzle queries, `process.env`. Converts DB rows into Domain DTOs before returning. Table definitions and migrations come from `packages/database` (`@cf-next/database`), which only this layer may import | server only |
 
-`src/application/` and `src/infrastructure/` modules start with `import "server-only"`.
-`src/app/` is the App Router directory; inside it, folders prefixed with `_` (such as `_lib/`) are
-excluded from routing. `src/middleware.ts` is UI but must sit next to `src/app/`, not inside it:
+`apps/web/src/application/` and `apps/web/src/infrastructure/` modules start with `import "server-only"`.
+`apps/web/src/app/` is the App Router directory; inside it, folders prefixed with `_` (such as `_lib/`) are
+excluded from routing. `apps/web/src/middleware.ts` is UI but must sit next to `apps/web/src/app/`, not inside it:
 Next.js only loads it from that level.
 
 ## Dependency rule
@@ -32,16 +34,16 @@ Dependencies point downward only. Domain depends on nothing.
 
 ```mermaid
 flowchart TB
-  subgraph UI["UI  src/app/ routes, components, _lib + src/middleware.ts"]
+  subgraph UI["UI  apps/web/src/app/ routes, components, _lib + apps/web/src/middleware.ts"]
     P["page.tsx (Server Component)"]
     C["components/*.tsx (Client)"]
     A["actions.ts (use server)"]
     R["route.ts / middleware.ts"]
   end
-  subgraph APP["Application  src/application/ (server-only)"]
+  subgraph APP["Application  apps/web/src/application/ (server-only)"]
     S["use cases: authn, authz, orchestration, DTOs"]
   end
-  subgraph INF["Infrastructure  src/infrastructure/ (server-only)"]
+  subgraph INF["Infrastructure  apps/web/src/infrastructure/ (server-only)"]
     I1["auth.ts (Clerk)"]
     I2["todos.ts / users.ts (drizzle)"]
     I3["db.ts / storage.ts (bindings)"]
@@ -49,7 +51,7 @@ flowchart TB
   subgraph PKG["packages/database  @cf-next/database"]
     T["modules/*/schema.ts, createDb(d1), migrations/"]
   end
-  subgraph DOM["Domain  src/domain/ (isomorphic)"]
+  subgraph DOM["Domain  apps/web/src/domain/ (isomorphic)"]
     D["schemas, DTO types, constants, errors"]
   end
   C -->|"calls"| A
@@ -76,7 +78,7 @@ flowchart TB
 | `domain` | yes | **no** | **no** | **no** | **no** | **no** |
 | `packages/database` | **no** | **no** | **no** | `drizzle-orm` only | **no** | **no** |
 
-Exception: `src/middleware.ts` imports `@clerk/nextjs/server` for `clerkMiddleware`, so it is not covered by the UI lint block.
+Exception: `apps/web/src/middleware.ts` imports `@clerk/nextjs/server` for `clerkMiddleware`, so it is not covered by the UI lint block.
 
 Enforcement: per-layer `no-restricted-imports` rules in `eslint.config.mjs` (one block per layer
 directory), the Nx `depConstraints` for the `type:database` and `type:ui` projects, and the cases
@@ -94,7 +96,7 @@ authentication and authorization still happen inside the Application layer.
 | `page.tsx`, `layout.tsx` | GET | Server Components call Application functions directly. They never go through a Server Action for reads |
 | `actions.ts` (`"use server"`) | POST from any page (an action is a POST against the page that invokes it) | Export **mutations only**. Keep them thin: parse input, call one Application function, `revalidatePath`, map errors |
 | `route.ts` | any HTTP method | Call Application, map errors to status codes |
-| `src/middleware.ts` | every matched request | Optimistic redirect to `/sign-in` only. No authorization decisions here; path matching cannot protect Server Actions |
+| `apps/web/src/middleware.ts` | every matched request | Optimistic redirect to `/sign-in` only. No authorization decisions here; path matching cannot protect Server Actions |
 
 ## Code map
 
@@ -102,18 +104,18 @@ Directories only; file lists go stale.
 
 | Path | Layer | Contents |
 |---|---|---|
-| `src/app/<route>/page.tsx`, `layout.tsx`, `loading.tsx` | UI | Route files |
-| `src/app/<route>/actions.ts` | UI | Server Actions for that route |
-| `src/app/<route>/components/` | UI | Client Components used by that route (a folder without `page.tsx` is not a route, so no `_` prefix is needed) |
-| `src/app/components/` | UI | Components shared across routes (navigation, footer, analytics) |
-| `src/app/_lib/` | UI | UI-side helpers, e.g. `runAction` that maps domain errors to `ActionResult` |
-| `src/middleware.ts` | UI | Clerk sign-in redirect; location fixed by Next.js |
-| `src/application/<feature>.ts` | Application | Use cases for one feature |
-| `src/domain/<feature>.ts`, `errors.ts` | Domain | Schemas, DTO types, constants, error classes |
-| `src/infrastructure/db.ts` | Infrastructure | `getDb()`: looks up the D1 binding through OpenNext and memoizes `createDb()` per request with `cache()` |
-| `src/infrastructure/auth.ts` | Infrastructure | `getCurrentUserId()`, `isAdmin()`; the only reader of `ADMIN_EMAILS` |
-| `src/infrastructure/storage.ts` | Infrastructure | R2 bucket access |
-| `src/infrastructure/<feature>.ts` | Infrastructure | Queries for one feature; returns Domain DTOs, never raw rows |
+| `apps/web/src/app/<route>/page.tsx`, `layout.tsx`, `loading.tsx` | UI | Route files |
+| `apps/web/src/app/<route>/actions.ts` | UI | Server Actions for that route |
+| `apps/web/src/app/<route>/components/` | UI | Client Components used by that route (a folder without `page.tsx` is not a route, so no `_` prefix is needed) |
+| `apps/web/src/app/components/` | UI | Components shared across routes (navigation, footer, analytics) |
+| `apps/web/src/app/_lib/` | UI | UI-side helpers, e.g. `runAction` that maps domain errors to `ActionResult` |
+| `apps/web/src/middleware.ts` | UI | Clerk sign-in redirect; location fixed by Next.js |
+| `apps/web/src/application/<feature>.ts` | Application | Use cases for one feature |
+| `apps/web/src/domain/<feature>.ts`, `errors.ts` | Domain | Schemas, DTO types, constants, error classes |
+| `apps/web/src/infrastructure/db.ts` | Infrastructure | `getDb()`: looks up the D1 binding through OpenNext and memoizes `createDb()` per request with `cache()` |
+| `apps/web/src/infrastructure/auth.ts` | Infrastructure | `getCurrentUserId()`, `isAdmin()`; the only reader of `ADMIN_EMAILS` |
+| `apps/web/src/infrastructure/storage.ts` | Infrastructure | R2 bucket access |
+| `apps/web/src/infrastructure/<feature>.ts` | Infrastructure | Queries for one feature; returns Domain DTOs, never raw rows |
 | `<module>.test.ts` next to its module | same as the module | Unit tests for that module; the module's layer rules apply. Cross-cutting tests live in `__tests__/` |
 | `packages/database/src/modules/<name>/schema.ts` | (outside; imported by Infrastructure only) | Table definitions for one module. Register each module in `packages/database/src/schema.ts` |
 | `packages/database/src/db.ts` | (outside) | `createDb(d1)`: opens the database from a D1 binding without OpenNext, for any Worker |
@@ -167,9 +169,10 @@ Application throws Domain error classes. The UI layer converts them at the entry
 | Domain is isomorphic (no `server-only`) | zod schemas and limits such as `MAX_IMAGE_SIZE` are shared between client-side instant validation and server-side final validation, so they are written once |
 | Application imports Infrastructure directly; no repository interfaces or DI | Two features do not justify ports. Unit-test Application with `vi.mock("@/infrastructure/...")`. Introduce interfaces only when a second implementation actually exists |
 | `revalidatePath` / `redirect` live in the UI layer, not in Application | Which URL goes stale is a presentation concern. Application stays callable from cron routes, tests and future APIs without changes |
-| `src/middleware.ts` only redirects unauthenticated users; admin checks live in Application | Middleware matches on path, but actions are POSTed to whichever page invoked them, so path-based rules cannot enforce authorization |
-| `src/middleware.ts` keeps its name instead of the Next 16 `proxy.ts` convention | `proxy.ts` runs on the Node.js runtime, which the OpenNext Cloudflare adapter does not support (see README). Revisit when the adapter does |
-| Table definitions live in `packages/database`, not in `src/infrastructure/` | Any Worker on the same D1 (cron, queue, scripts) needs the schema and migrations without Next.js. Queries stay in Infrastructure because they return Domain DTOs ([ADR-0003](docs/adr/0003-database-package.md)) |
+| `apps/web/src/middleware.ts` only redirects unauthenticated users; admin checks live in Application | Middleware matches on path, but actions are POSTed to whichever page invoked them, so path-based rules cannot enforce authorization |
+| `apps/web/src/middleware.ts` keeps its name instead of the Next 16 `proxy.ts` convention | `proxy.ts` runs on the Node.js runtime, which the OpenNext Cloudflare adapter does not support (see README). Revisit when the adapter does |
+| Table definitions live in `packages/database`, not in `apps/web/src/infrastructure/` | Any Worker on the same D1 (cron, queue, scripts) needs the schema and migrations without Next.js. Queries stay in Infrastructure because they return Domain DTOs ([ADR-0003](docs/adr/0003-database-package.md)) |
+| `apps/web` and `packages/*` are plain pnpm workspace directories, not separate build systems | Nx (`nx.json`, per-package `"nx"` field) only adds the project graph, target running (`nx dev web`, `nx build web`) and dependency-boundary lint; the layer rules above are unaffected ([ADR-0004](docs/adr/0004-apps-web-nx-layout.md)) |
 
 ## Non-goals
 
@@ -192,6 +195,10 @@ Tracked in [ADR-0001](docs/adr/0001-layered-app-structure.md). Completed; `lib/`
 
 [ADR-0003](docs/adr/0003-database-package.md): completed in one step; `src/infrastructure/schema.ts`,
 `drizzle.config.ts` and `drizzle/` at the root no longer exist.
+
+[ADR-0004](docs/adr/0004-apps-web-nx-layout.md): completed in one step; the Next.js app and its
+`src/` moved to `apps/web/`, `pnpm-workspace.yaml` adds `apps/*`, and `nx dev web` / `nx build web`
+replace the root-level `next dev` / `next build` scripts.
 
 ## References
 
