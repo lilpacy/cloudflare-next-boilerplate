@@ -121,7 +121,7 @@ Visit [http://localhost:3000](http://localhost:3000) to see your app!
 │   ├── _infrastructure/   # D1/drizzle, R2, Clerk SDK access (server-only)
 │   └── _lib/              # UI-side helpers (page error mapping, ActionResult)
 ├── packages/ui/           # Shared presentation-only components (@cf-next/ui)
-├── __tests__/            # Vitest tests
+├── __tests__/            # Cross-cutting Vitest tests (unit tests sit next to their module as *.test.ts)
 ├── e2e/                  # Playwright specs, page objects and fixtures
 ├── .github/workflows/     # Production deploy workflow
 ├── drizzle/              # Database migrations

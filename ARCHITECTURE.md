@@ -103,6 +103,7 @@ Directories only; file lists go stale.
 | `app/_infrastructure/auth.ts` | Infrastructure | `getCurrentUserId()`, `isAdmin()`; the only reader of `ADMIN_EMAILS` |
 | `app/_infrastructure/storage.ts` | Infrastructure | R2 bucket access |
 | `app/_infrastructure/<feature>.ts` | Infrastructure | Queries for one feature; returns Domain DTOs, never raw rows |
+| `<module>.test.ts` next to its module | same as the module | Unit tests for that module; the module's layer rules apply. Cross-cutting tests live in `__tests__/` |
 | `packages/ui/` | (outside) | Presentation-only components; may not import app code (Nx boundary) |
 
 ## Where does new code go?
