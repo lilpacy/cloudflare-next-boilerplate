@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { PrimaryButton, TextInput, Textarea } from "@cf-next/ui";
 import { createTodo } from "@/app/actions/todos";
 import { useRouter } from "next/navigation";
 
@@ -51,13 +52,12 @@ export function CreateTodoForm() {
           <label htmlFor="title" className="block text-sm font-medium mb-1">
             Title
           </label>
-          <input
+          <TextInput
             type="text"
             id="title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             disabled={isPending}
-            className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Enter todo title"
             maxLength={200}
           />
@@ -67,25 +67,24 @@ export function CreateTodoForm() {
           <label htmlFor="description" className="block text-sm font-medium mb-1">
             Description (optional)
           </label>
-          <textarea
+          <Textarea
             id="description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             disabled={isPending}
-            className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Enter todo description"
             rows={3}
             maxLength={1000}
           />
         </div>
 
-        <button
+        <PrimaryButton
           type="submit"
           disabled={isPending || !title.trim()}
-          className="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full"
         >
           {isPending ? "Creating..." : "Create Todo"}
-        </button>
+        </PrimaryButton>
       </div>
     </form>
   );
