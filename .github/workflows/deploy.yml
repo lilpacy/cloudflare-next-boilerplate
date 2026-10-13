@@ -1,4 +1,4 @@
-name: Deploy production
+name: Deploy preview
 
 on:
   push:
@@ -8,7 +8,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: deploy-production
+  group: deploy-preview
   cancel-in-progress: false
 
 jobs:
@@ -23,9 +23,9 @@ jobs:
           node-version: 22.16.0
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - name: Configure production
+      - name: Configure preview
         env:
-          WRANGLER_CONFIG: ${{ secrets.CLOUDFLARE_WRANGLER_CONFIG }}
+          WRANGLER_CONFIG: ${{ secrets.CLOUDFLARE_PREVIEW_WRANGLER_CONFIG }}
         run: |
           node <<'NODE'
           const fs = require('node:fs');
@@ -41,8 +41,19 @@ jobs:
           mask(config);
           // CI builds explicitly before migrations; skip Wrangler's custom rebuild.
           delete config.build;
-          assert(config.vars.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY.startsWith('pk_'));
-          const vars = Object.entries(config.vars).map(([key, value]) => {
+          const preview = config.env?.preview;
+          assert(preview?.name === 'my-app-preview' && preview.vars.ENV_NAME === 'preview');
+          assert(Array.isArray(preview.routes) && preview.routes.length === 0);
+          assert(preview.d1_databases.length === 1 && preview.d1_databases[0].database_name === 'my-app-db-preview');
+          assert(preview.d1_databases[0].database_id && !preview.d1_databases[0].database_id.includes('YOUR_'));
+          assert(!config.d1_databases.some(db => db.database_id === preview.d1_databases[0].database_id));
+          assert(preview.r2_buckets.length === 2 && preview.r2_buckets.every(bucket =>
+            ['my-app-storage-preview', 'my-app-cache-preview'].includes(bucket.bucket_name) &&
+            !config.r2_buckets.some(prod => prod.bucket_name === bucket.bucket_name)));
+          assert(new Set(preview.r2_buckets.map(bucket => bucket.bucket_name)).size === 2);
+          assert(preview.services.some(service => service.binding === 'WORKER_SELF_REFERENCE' && service.service === preview.name));
+          assert(preview.vars.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY.startsWith('pk_test_'));
+          const vars = Object.entries(preview.vars).map(([key, value]) => {
             assert(/^[A-Z][A-Z0-9_]*$/.test(key) && typeof value === 'string' && !/[\r\n]/.test(value));
             return `${key}=${value}\n`;
           }).join('');
@@ -50,15 +61,15 @@ jobs:
           fs.appendFileSync(process.env.GITHUB_ENV, vars);
           NODE
       - run: pnpm run lint
-      - name: Build production Worker
-        run: pnpm exec opennextjs-cloudflare build
-      - name: Migrate production database
-        run: pnpm run db:migrate:prod
+      - name: Build preview Worker
+        run: pnpm exec opennextjs-cloudflare build --env preview
+      - name: Migrate preview database
+        run: pnpm run db:migrate:preview
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-      - name: Deploy production Worker
-        run: pnpm exec opennextjs-cloudflare deploy
+      - name: Deploy preview Worker
+        run: pnpm exec opennextjs-cloudflare deploy --env preview
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

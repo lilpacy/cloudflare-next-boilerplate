@@ -220,7 +220,7 @@ Tailwind explicitly scans `packages/ui/src` through `@source` in the existing
 SCSS entry. Sass and the existing styling remain unchanged.
 
 Boundary enforcement runs in `pnpm lint`, the existing Husky pre-commit hook and
-the production deploy workflow on `master` pushes. There is no PR CI workflow; a
+the preview deploy workflow on `master` pushes. There is no PR CI workflow; a
 future PR job should run `pnpm lint`, `pnpm type-check` and `pnpm test:run`. Plain `eslint`/IDE lint needs
 an existing Nx graph; the rule can skip if that cache is missing, so use
 `pnpm lint` as the required gate. Nx Cloud is not configured.
@@ -311,28 +311,38 @@ pnpm run db:migrate:prod
 pnpm run deploy
 ```
 
-### Automatic Production Deployment
+### Automatic Preview Deployment
 
 Every push to `master` (including a merged PR) runs `.github/workflows/deploy.yml`.
-GitHub Actions installs the frozen lockfile, runs lint, builds the OpenNext Worker,
-applies pending production D1 migrations with `pnpm run db:migrate:prod`, then
-deploys the built Worker. It uses Node 22.16.0. A build or migration failure stops
-deployment. Production deploys are serialized without cancelling a running
-deployment. Check **Actions → Deploy production** for the result.
+GitHub Actions installs the frozen lockfile, runs lint, builds the OpenNext Worker
+with `--env preview`, applies pending preview D1 migrations with
+`pnpm run db:migrate:preview`, then deploys with `--env preview`. It uses Node
+22.16.0. A build or migration failure stops deployment. Preview deploys are
+serialized without cancelling a running deployment. Check **Actions → Deploy
+preview** for the result. Production deployment and migrations remain manual
+using the commands above.
 
-Configure these repository **Actions secrets** before merging the workflow:
+Configure these repository **Actions secrets** before enabling the workflow:
 
 | Secret | Value |
 | --- | --- |
-| `CLOUDFLARE_API_TOKEN` | API token scoped to the production account with Workers Scripts Write, Workers R2 Storage Write, D1 Write, and Account Settings Read permissions |
-| `CLOUDFLARE_ACCOUNT_ID` | Existing production Cloudflare account ID |
-| `CLOUDFLARE_WRANGLER_CONFIG` | Complete production Wrangler configuration as valid JSON (remove JSONC comments and trailing commas), including existing D1/R2 bindings and `vars` |
+| `CLOUDFLARE_API_TOKEN` | API token scoped to the preview account with Workers Scripts Write, Workers R2 Storage Write, D1 Write, and Account Settings Read permissions |
+| `CLOUDFLARE_ACCOUNT_ID` | Cloudflare account ID for preview |
+| `CLOUDFLARE_PREVIEW_WRANGLER_CONFIG` | Complete Wrangler configuration as valid JSON (remove JSONC comments and trailing commas), including explicit `env.preview.name`, preview D1/R2 bindings and `env.preview.vars` |
 
-The workflow replaces the template config with this private production config and
-passes its `vars` to the build, including `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` and
-`NEXT_PUBLIC_BASE_URL`. Config string values are masked in job logs. Keep
-`CLERK_SECRET_KEY` as a Worker secret; do not include it in the config or GitHub
-build environment. Existing Worker secrets are preserved by deployment.
+The workflow replaces the template config with this private config and passes
+`env.preview.vars` to the build, including `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` and
+`NEXT_PUBLIC_BASE_URL`. Set `env.preview.name` to `my-app-preview`, its DB name to
+`my-app-db-preview`, its R2 bucket names to `my-app-storage-preview` and
+`my-app-cache-preview`, and its self-reference service to `my-app-preview`. Set
+`env.preview.routes` to `[]` to avoid inheriting production custom routes. Set
+`ENV_NAME` to `preview` and use a Clerk test-instance publishable key. CI checks
+these targets and rejects shared production DB IDs or R2 bucket names.
+
+Config string values are masked in job logs. Keep the matching Clerk test-instance
+`CLERK_SECRET_KEY` as a secret on the preview Worker; do not include it in the
+config or GitHub build environment. Existing Worker secrets are preserved by
+deployment.
 
 Commit generated SQL migrations under `drizzle/`; CI applies only migrations not
 recorded in D1's migration history. Keep pre-deploy migrations compatible with the
@@ -342,20 +352,20 @@ them. A Worker rollback does not undo database migrations. For a database create
 outside migrations, verify its schema and establish a baseline migration history
 before enabling this workflow; do not blindly mark migrations as applied.
 
-When changing production bindings or variables, update `CLOUDFLARE_WRANGLER_CONFIG`
-as well. This workflow does not create environments or run E2E tests against
-production. See [Cloudflare's CI authentication guide](https://developers.cloudflare.com/workers/ci-cd/external-cicd/github-actions/).
+When changing preview bindings or variables, update
+`CLOUDFLARE_PREVIEW_WRANGLER_CONFIG` as well. The workflow does not provision
+resources or run E2E tests. See [Cloudflare's CI authentication guide](https://developers.cloudflare.com/workers/ci-cd/external-cicd/github-actions/).
 
 ### Preview Environment
 
 ```bash
-pnpm run deploy:preview
 pnpm run db:migrate:preview
+pnpm run deploy:preview
 ```
 
 ## Environment Variables
 
-See `.env.example` for all available environment variables. For production, configure these under `vars` in `wrangler.jsonc` for manual deploys, or in the `CLOUDFLARE_WRANGLER_CONFIG` Actions secret for automatic deployment.
+See `.env.example` for all available environment variables. For manual production deploys, configure these under `vars` in `wrangler.jsonc`. For automatic preview deployment, configure `env.preview.vars` in the `CLOUDFLARE_PREVIEW_WRANGLER_CONFIG` Actions secret.
 
 ## Tech Stack
 
