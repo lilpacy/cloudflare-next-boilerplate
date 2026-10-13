@@ -23,17 +23,17 @@ const eslintConfig = [
     // Playwright's use callback is a lifecycle boundary, not React.use.
     rules: { "react-hooks/rules-of-hooks": "off" },
   },
-  // Layer boundaries (ARCHITECTURE.md "Dependency rule"). `**/_x` and `**/_x/**` match both
-  // `@/app/_x/...` aliases and relative paths such as `../_x/...`.
+  // Layer boundaries (ARCHITECTURE.md "Dependency rule"). `**/x` and `**/x/**` match both
+  // `@/x/...` aliases and relative paths such as `../x/...`.
   {
-    files: ["app/_domain/**/*.{ts,tsx}"],
+    files: ["src/domain/**/*.{ts,tsx}"],
     rules: {
       "no-restricted-imports": [
         "error",
         {
           patterns: [
             {
-              group: ["**/_application", "**/_application/**", "**/_infrastructure", "**/_infrastructure/**"],
+              group: ["**/application", "**/application/**", "**/infrastructure", "**/infrastructure/**"],
               message: "Domain depends on nothing: no Application or Infrastructure imports.",
             },
             {
@@ -46,7 +46,7 @@ const eslintConfig = [
     },
   },
   {
-    files: ["app/_application/**/*.{ts,tsx}"],
+    files: ["src/application/**/*.{ts,tsx}"],
     rules: {
       "no-restricted-imports": [
         "error",
@@ -54,7 +54,7 @@ const eslintConfig = [
           patterns: [
             {
               group: ["drizzle-orm", "drizzle-orm/**", "@clerk/**", "@opennextjs/**"],
-              message: "Application orchestrates Infrastructure; SDK access belongs in app/_infrastructure.",
+              message: "Application orchestrates Infrastructure; SDK access belongs in src/infrastructure.",
             },
             {
               group: ["react", "react-dom", "next", "next/**"],
@@ -66,14 +66,14 @@ const eslintConfig = [
     },
   },
   {
-    files: ["app/_infrastructure/**/*.{ts,tsx}"],
+    files: ["src/infrastructure/**/*.{ts,tsx}"],
     rules: {
       "no-restricted-imports": [
         "error",
         {
           patterns: [
             {
-              group: ["**/_application", "**/_application/**"],
+              group: ["**/application", "**/application/**"],
               message: "Infrastructure must not depend on Application.",
             },
             {
@@ -86,20 +86,20 @@ const eslintConfig = [
     },
   },
   {
-    files: ["app/**/*.{ts,tsx}"],
-    ignores: ["app/_domain/**", "app/_application/**", "app/_infrastructure/**"],
+    // src/middleware.ts is UI too, but stays out: it imports @clerk/nextjs/server for clerkMiddleware.
+    files: ["src/app/**/*.{ts,tsx}"],
     rules: {
       "no-restricted-imports": [
         "error",
         {
           patterns: [
             {
-              group: ["**/_infrastructure", "**/_infrastructure/**"],
-              message: "UI reaches data only through app/_application use cases.",
+              group: ["**/infrastructure", "**/infrastructure/**"],
+              message: "UI reaches data only through src/application use cases.",
             },
             {
               group: ["drizzle-orm", "drizzle-orm/**", "@clerk/nextjs/server", "@opennextjs/**"],
-              message: "SDK access belongs in app/_infrastructure; UI calls app/_application.",
+              message: "SDK access belongs in src/infrastructure; UI calls src/application.",
             },
           ],
         },

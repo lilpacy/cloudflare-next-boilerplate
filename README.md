@@ -107,26 +107,26 @@ Visit [http://localhost:3000](http://localhost:3000) to see your app!
 ## Project Structure
 
 ```
-├── app/                    # Next.js App Router
-│   ├── actions/           # Server Actions
-│   ├── admin/             # Admin dashboard
-│   ├── api/images/        # R2 image delivery route
-│   ├── profile/           # Profile page with image upload
-│   ├── sign-in/, sign-up/ # Clerk authentication pages
-│   ├── todos/             # Todo app example (page, actions.ts, components/)
-│   ├── components/        # React components shared across routes
-│   ├── styles/            # Global styles
-│   ├── _application/      # Use cases: authn/authz, orchestration (server-only)
-│   ├── _domain/           # DTO types, zod schemas, constants, error classes
-│   ├── _infrastructure/   # D1/drizzle, R2, Clerk SDK access (server-only)
-│   └── _lib/              # UI-side helpers (page error mapping, ActionResult)
+├── src/                    # Application code, one directory per layer (see ARCHITECTURE.md)
+│   ├── app/               # UI layer: Next.js App Router
+│   │   ├── admin/         # Admin dashboard
+│   │   ├── api/images/    # R2 image delivery route
+│   │   ├── profile/       # Profile page with image upload
+│   │   ├── sign-in/, sign-up/ # Clerk authentication pages
+│   │   ├── todos/         # Todo app example (page, actions.ts, components/)
+│   │   ├── components/    # React components shared across routes
+│   │   ├── styles/        # Global styles
+│   │   └── _lib/          # UI-side helpers (page error mapping, ActionResult)
+│   ├── application/       # Use cases: authn/authz, orchestration (server-only)
+│   ├── domain/            # DTO types, zod schemas, constants, error classes
+│   ├── infrastructure/    # D1/drizzle, R2, Clerk SDK access (server-only)
+│   └── middleware.ts      # UI layer: Clerk sign-in redirect (authorization lives in src/application)
 ├── packages/ui/           # Shared presentation-only components (@cf-next/ui)
 ├── __tests__/            # Cross-cutting Vitest tests (unit tests sit next to their module as *.test.ts)
 ├── e2e/                  # Playwright specs, page objects and fixtures
 ├── .github/workflows/     # Production deploy workflow
 ├── drizzle/              # Database migrations
 ├── public/               # Static assets
-├── middleware.ts         # Clerk sign-in redirect (authorization lives in app/_application)
 ├── open-next.config.ts   # OpenNext Cloudflare adapter config
 ├── wrangler.jsonc        # Cloudflare Workers config
 └── package.json          # Dependencies and scripts
@@ -153,7 +153,7 @@ Visit [http://localhost:3000](http://localhost:3000) to see your app!
 ### Database (D1)
 - `pnpm run db:create` - Create production database
 - `pnpm run db:create:preview` - Create preview database
-- `pnpm run db:generate` - Generate a migration from `app/_infrastructure/schema.ts`
+- `pnpm run db:generate` - Generate a migration from `src/infrastructure/schema.ts`
 - `pnpm run db:migrate:local` - Run migrations locally
 - `pnpm run db:migrate:prod` - Run migrations on production
 - `pnpm run db:migrate:preview` - Run migrations on preview
@@ -184,8 +184,8 @@ checks pass.
 Next.js 16 uses Turbopack for development and production builds. ESLint runs
 separately via `pnpm run lint`; `next build` no longer runs it.
 
-Keep `middleware.ts` for the Clerk sign-in redirect (authorization lives in
-`app/_application`, see `ARCHITECTURE.md`): it uses the Edge runtime. The Node.js runtime used by `proxy.ts` is not supported by
+Keep `src/middleware.ts` for the Clerk sign-in redirect (authorization lives in
+`src/application`, see `ARCHITECTURE.md`): it uses the Edge runtime. The Node.js runtime used by `proxy.ts` is not supported by
 the [OpenNext Cloudflare adapter](https://opennext.js.org/cloudflare). Revisit
 this when the adapter supports Node.js middleware/proxy.
 
@@ -422,21 +422,21 @@ Visit `/todos` after signing in to see it in action.
 
 If you want to start fresh without the Todo example:
 
-1. Delete `app/todos/` directory
-2. Delete `app/_application/todos.ts`, `app/_infrastructure/todos.ts` and `app/_domain/todo.ts`
-3. Update `app/_infrastructure/schema.ts` to remove the todos table
+1. Delete `src/app/todos/` directory
+2. Delete `src/application/todos.ts`, `src/infrastructure/todos.ts` and `src/domain/todo.ts`
+3. Update `src/infrastructure/schema.ts` to remove the todos table
 4. Create new migration: `pnpm run db:generate`
-5. Update navigation in `app/components/navigation.tsx`
-6. Update the admin dashboard (`app/admin/page.tsx`), which shows Todo stats
+5. Update navigation in `src/app/components/navigation.tsx`
+6. Update the admin dashboard (`src/app/admin/page.tsx`), which shows Todo stats
 7. Remove or update Todo E2E specs, page objects and fixtures in `e2e/`
 
 ### Adding New Features
 
-1. Define database schema in `app/_infrastructure/schema.ts`
+1. Define database schema in `src/infrastructure/schema.ts`
 2. Generate migration: `pnpm run db:generate`
-3. Create validation schemas and DTO types in `app/_domain/`
-4. Add queries in `app/_infrastructure/` and use cases in `app/_application/` (see `ARCHITECTURE.md`)
-5. Build UI in `app/` using the example patterns; reads call Application from Server Components, mutations go through Server Actions
+3. Create validation schemas and DTO types in `src/domain/`
+4. Add queries in `src/infrastructure/` and use cases in `src/application/` (see `ARCHITECTURE.md`)
+5. Build UI in `src/app/` using the example patterns; reads call Application from Server Components, mutations go through Server Actions
 
 ## Troubleshooting
 

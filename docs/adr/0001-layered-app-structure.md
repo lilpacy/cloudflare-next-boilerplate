@@ -1,6 +1,7 @@
 # ADR-0001: Layered structure for application code under `app/`
 
 - **Status:** Accepted (applies to new code immediately; existing code is migrated per [ARCHITECTURE.md](../../ARCHITECTURE.md#migration-status))
+- **Superseded in part by:** [ADR-0002](0002-src-layer-directories.md) moves the layers from `app/_<layer>/` to `src/<layer>/`. Paths below are as of this decision
 - **Date:** 2026-10-14
 - **Deciders:** lilpacy
 
