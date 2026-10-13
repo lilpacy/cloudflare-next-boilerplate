@@ -1,4 +1,6 @@
 import { expect, test } from "@playwright/test";
+import { EditTodoPage } from "./pages/EditTodoPage";
+import { TodosPage } from "./pages/TodosPage";
 import { USER_STORAGE_STATE } from "./test-users";
 
 test.use({ storageState: USER_STORAGE_STATE });
@@ -13,85 +15,76 @@ test.describe("Todo 管理", () => {
   test("正常系: Todo がないときは空状態のメッセージが表示される", async ({
     page,
   }) => {
-    await page.goto("/todos");
+    const todos = new TodosPage(page);
+    await todos.open();
 
-    await expect(
-      page.getByText("No todos yet. Create your first todo above!")
-    ).toBeVisible();
+    await expect(todos.emptyMessage).toBeVisible();
   });
 
   test("正常系: タイトルと説明を入力すると Todo が一覧に追加される", async ({
     page,
   }) => {
-    await page.goto("/todos");
+    const todos = new TodosPage(page);
+    await todos.open();
 
-    await page.getByLabel("Title").fill(todoTitle);
-    await page.getByLabel("Description (optional)").fill(todoDescription);
-    await page.getByRole("button", { name: "Create Todo" }).click();
+    await todos.create(todoTitle, todoDescription);
 
-    await expect(
-      page.getByRole("heading", { name: todoTitle })
-    ).toBeVisible();
-    await expect(page.getByText(todoDescription)).toBeVisible();
-    await expect(page.getByLabel("Title")).toHaveValue("");
+    await expect(todos.title(todoTitle)).toBeVisible();
+    await expect(todos.description(todoDescription)).toBeVisible();
+    await expect(todos.titleInput).toHaveValue("");
   });
 
   test("正常系: チェックボックスを押すと Todo が完了として表示される", async ({
     page,
   }) => {
-    await page.goto("/todos");
+    const todos = new TodosPage(page);
+    await todos.open();
 
-    await page.getByRole("checkbox").click();
+    await todos.toggleCompleted();
 
-    await expect(page.getByRole("checkbox")).toBeChecked();
-    await expect(page.getByRole("heading", { name: todoTitle })).toHaveClass(
-      /line-through/
-    );
+    await expect(todos.completionCheckbox).toBeChecked();
+    await expect(todos.title(todoTitle)).toHaveClass(/line-through/);
   });
 
   test("正常系: 編集画面で保存すると変更が一覧に反映される", async ({
     page,
   }) => {
-    await page.goto("/todos");
+    const todos = new TodosPage(page);
+    await todos.open();
 
-    await page.getByRole("link", { name: "Edit" }).click();
-    await expect(page.getByLabel("Title")).toHaveValue(todoTitle);
+    await todos.edit();
+    const editTodo = new EditTodoPage(page);
+    await expect(editTodo.titleInput).toHaveValue(todoTitle);
 
-    await page.getByLabel("Title").fill(updatedTitle);
-    await page.getByRole("button", { name: "Save Changes" }).click();
+    await editTodo.changeTitle(updatedTitle);
+    await editTodo.save();
 
     await expect(page).toHaveURL(/\/todos$/);
-    await expect(
-      page.getByRole("heading", { name: updatedTitle })
-    ).toBeVisible();
+    await expect(todos.title(updatedTitle)).toBeVisible();
   });
 
   test("正常系: 編集画面でキャンセルすると変更せずに一覧へ戻る", async ({
     page,
   }) => {
-    await page.goto("/todos");
+    const todos = new TodosPage(page);
+    await todos.open();
 
-    await page.getByRole("link", { name: "Edit" }).click();
-    await page.getByLabel("Title").fill("破棄されるタイトル");
-    await page.getByRole("button", { name: "Cancel" }).click();
+    await todos.edit();
+    const editTodo = new EditTodoPage(page);
+    await editTodo.changeTitle("破棄されるタイトル");
+    await editTodo.cancel();
 
     await expect(page).toHaveURL(/\/todos$/);
-    await expect(
-      page.getByRole("heading", { name: updatedTitle })
-    ).toBeVisible();
-    await expect(
-      page.getByRole("heading", { name: "破棄されるタイトル" })
-    ).not.toBeVisible();
+    await expect(todos.title(updatedTitle)).toBeVisible();
+    await expect(todos.title("破棄されるタイトル")).not.toBeVisible();
   });
 
   test("正常系: 削除を確定すると Todo が一覧から消える", async ({ page }) => {
-    await page.goto("/todos");
+    const todos = new TodosPage(page);
+    await todos.open();
 
-    page.on("dialog", (dialog) => dialog.accept());
-    await page.getByRole("button", { name: "Delete" }).click();
+    await todos.delete();
 
-    await expect(
-      page.getByText("No todos yet. Create your first todo above!")
-    ).toBeVisible();
+    await expect(todos.emptyMessage).toBeVisible();
   });
 });

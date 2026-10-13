@@ -1,4 +1,7 @@
 import { expect, test } from "@playwright/test";
+import { HomePage } from "./pages/HomePage";
+import { Navigation } from "./pages/Navigation";
+import { TodosPage } from "./pages/TodosPage";
 import { USER_STORAGE_STATE } from "./test-users";
 
 test.use({ storageState: USER_STORAGE_STATE });
@@ -7,44 +10,36 @@ test.describe("ナビゲーション", () => {
   test("正常系: ナビのリンクから各ページへ移動でき、現在地のリンクが強調される", async ({
     page,
   }) => {
-    await page.goto("/");
+    await new HomePage(page).open();
 
-    const nav = page.getByRole("navigation");
+    const nav = new Navigation(page);
 
-    await nav.getByRole("link", { name: "Todos" }).click();
+    await nav.goTo("Todos");
     await expect(page).toHaveURL(/\/todos$/);
-    await expect(nav.getByRole("link", { name: "Todos" })).toHaveClass(
-      /font-semibold/
-    );
+    await expect(nav.link("Todos")).toHaveClass(/font-semibold/);
 
-    await nav.getByRole("link", { name: "Profile" }).click();
+    await nav.goTo("Profile");
     await expect(page).toHaveURL(/\/profile$/);
-    await expect(nav.getByRole("link", { name: "Profile" })).toHaveClass(
-      /font-semibold/
-    );
+    await expect(nav.link("Profile")).toHaveClass(/font-semibold/);
 
-    await nav.getByRole("link", { name: "Home" }).click();
+    await nav.goTo("Home");
     await expect(page).toHaveURL(/\/$/);
-    await expect(nav.getByRole("link", { name: "Home" })).toHaveClass(
-      /font-semibold/
-    );
+    await expect(nav.link("Home")).toHaveClass(/font-semibold/);
   });
 
   test("正常系: モバイル表示ではハンバーガーメニューからページへ移動できる", async ({
     page,
   }) => {
     await page.setViewportSize({ width: 375, height: 667 });
-    await page.goto("/");
+    await new HomePage(page).open();
 
-    await page.getByRole("button", { name: "Toggle menu" }).click();
+    const nav = new Navigation(page);
+    await nav.toggleMenu();
 
-    const mobileTodosLink = page.getByRole("link", { name: "Todos" });
-    await expect(mobileTodosLink).toBeVisible();
-    await mobileTodosLink.click();
+    await expect(nav.link("Todos")).toBeVisible();
+    await nav.goTo("Todos");
 
     await expect(page).toHaveURL(/\/todos$/);
-    await expect(
-      page.getByRole("heading", { name: "My Todos" })
-    ).toBeVisible();
+    await expect(new TodosPage(page).heading).toBeVisible();
   });
 });
