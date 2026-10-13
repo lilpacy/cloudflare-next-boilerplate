@@ -277,6 +277,31 @@ pnpm dlx wrangler secret put CLERK_SECRET_KEY --env preview
 pnpm run deploy
 ```
 
+### Automatic Production Deployment
+
+Every push to `master` (including a merged PR) runs `.github/workflows/deploy.yml`.
+GitHub Actions installs the frozen lockfile, runs lint, then runs `pnpm run deploy`
+with Node 22.16.0. Production deploys are serialized without cancelling a running
+deployment. Check **Actions → Deploy production** for the result.
+
+Configure these repository **Actions secrets** before merging the workflow:
+
+| Secret | Value |
+| --- | --- |
+| `CLOUDFLARE_API_TOKEN` | API token scoped to the production account with Workers Scripts Write, Workers R2 Storage Write, D1 Read, and Account Settings Read permissions |
+| `CLOUDFLARE_ACCOUNT_ID` | Existing production Cloudflare account ID |
+| `CLOUDFLARE_WRANGLER_CONFIG` | Complete production Wrangler configuration as valid JSON (remove JSONC comments and trailing commas), including existing D1/R2 bindings and `vars` |
+
+The workflow replaces the template config with this private production config and
+passes its `vars` to the build, including `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` and
+`NEXT_PUBLIC_BASE_URL`. Config string values are masked in job logs. Keep
+`CLERK_SECRET_KEY` as a Worker secret; do not include it in the config or GitHub
+build environment. Existing Worker secrets are preserved by deployment.
+
+When changing production bindings or variables, update `CLOUDFLARE_WRANGLER_CONFIG`
+as well. This workflow does not create environments, run database migrations, or
+run E2E tests against production. See [Cloudflare's CI authentication guide](https://developers.cloudflare.com/workers/ci-cd/external-cicd/github-actions/).
+
 ## Environment Variables
 
 See `.env.example` for all available environment variables. For production, configure these in `wrangler.jsonc` under the `vars` section.
