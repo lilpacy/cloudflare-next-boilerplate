@@ -1,0 +1,70 @@
+name: Deploy production
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: github.ref == 'refs/heads/master'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22.16.0
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Configure production
+        env:
+          WRANGLER_CONFIG: ${{ secrets.CLOUDFLARE_WRANGLER_CONFIG }}
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const assert = require('node:assert/strict');
+          const config = JSON.parse(process.env.WRANGLER_CONFIG);
+          const mask = value => {
+            if (typeof value === 'string' && value) {
+              console.log(`::add-mask::${value.replace(/%/g, '%25').replace(/\r/g, '%0D').replace(/\n/g, '%0A')}`);
+            } else if (value && typeof value === 'object') {
+              Object.values(value).forEach(mask);
+            }
+          };
+          mask(config);
+          // CI builds explicitly before migrations; skip Wrangler's custom rebuild.
+          delete config.build;
+          assert(config.name === 'my-app' && config.vars.ENV_NAME === 'production');
+          assert(config.d1_databases.length === 1 && config.d1_databases[0].database_name === 'my-app-db');
+          assert(config.d1_databases[0].database_id && !config.d1_databases[0].database_id.includes('YOUR_'));
+          assert(config.r2_buckets.length === 2 && config.r2_buckets.every(bucket =>
+            ['my-app-storage', 'my-app-cache'].includes(bucket.bucket_name)));
+          assert(new Set(config.r2_buckets.map(bucket => bucket.bucket_name)).size === 2);
+          assert(config.services.length === 1 && config.services[0].binding === 'WORKER_SELF_REFERENCE' && config.services[0].service === config.name);
+          const vars = Object.entries(config.vars).map(([key, value]) => {
+            assert(/^[A-Z][A-Z0-9_]*$/.test(key) && typeof value === 'string' && !/[\r\n]/.test(value));
+            return `${key}=${value}\n`;
+          }).join('');
+          fs.writeFileSync('wrangler.jsonc', JSON.stringify(config));
+          fs.appendFileSync(process.env.GITHUB_ENV, vars);
+          NODE
+      - run: pnpm run lint
+      - name: Build production Worker
+        run: pnpm exec opennextjs-cloudflare build
+      - name: Migrate production database
+        run: pnpm run db:migrate:prod
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      - name: Deploy production Worker
+        run: pnpm exec opennextjs-cloudflare deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
