@@ -51,7 +51,7 @@ jobs:
             ['my-app-storage-preview', 'my-app-cache-preview'].includes(bucket.bucket_name) &&
             !config.r2_buckets.some(prod => prod.bucket_name === bucket.bucket_name)));
           assert(new Set(preview.r2_buckets.map(bucket => bucket.bucket_name)).size === 2);
-          assert(preview.services.some(service => service.binding === 'WORKER_SELF_REFERENCE' && service.service === preview.name));
+          assert(preview.services.length === 1 && preview.services[0].binding === 'WORKER_SELF_REFERENCE' && preview.services[0].service === preview.name);
           assert(preview.vars.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY.startsWith('pk_test_'));
           const vars = Object.entries(preview.vars).map(([key, value]) => {
             assert(/^[A-Z][A-Z0-9_]*$/.test(key) && typeof value === 'string' && !/[\r\n]/.test(value));
