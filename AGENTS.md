@@ -1,7 +1,7 @@
 # Repository Guidelines
 
 ## Project Structure & Module Organization
-- `app/` hosts the Next.js App Router and is organized in four layers (UI / Application / Domain / Infrastructure). Read `ARCHITECTURE.md` before adding or moving server-side code; it defines which directory each kind of code belongs in and which imports are allowed (per-layer `no-restricted-imports` rules in `eslint.config.mjs` enforce them). Server Actions live next to their route as `app/<route>/actions.ts` and export mutations only.
+- `src/` holds application code in four layers, one directory each: `src/domain/`, `src/application/`, `src/infrastructure/` and the UI layer `src/app/` (the Next.js App Router) plus `src/middleware.ts`. Read `ARCHITECTURE.md` before adding or moving server-side code; it defines which directory each kind of code belongs in and which imports are allowed (per-layer `no-restricted-imports` rules in `eslint.config.mjs` enforce them). Server Actions live next to their route as `src/app/<route>/actions.ts` and export mutations only.
 - Shared presentation-only React components live in `packages/ui`; keep Clerk, database and storage logic in the app. `pnpm lint` enforces Nx project boundaries and cross-project cycle restrictions.
 - Database migrations sit in `drizzle/`; keep SQL files in sync with generated metadata. Static assets belong in `public/`, and deployment wiring is captured by `open-next.config.ts`, `wrangler.jsonc` and `.github/workflows/deploy-preview.yml` (preview deploy on every `master` push) and `.github/workflows/deploy-production.yml` (manual production deploy from `master`).
 
@@ -10,15 +10,15 @@
 - `pnpm run build` creates a production bundle; `pnpm run start` runs it on the Next.js Node server. Use `pnpm run preview:cf` to build and run it locally in the Cloudflare Workers runtime with D1/R2 bindings.
 - `pnpm run lint` runs the configured ESLint ruleset; fix warnings before opening a PR.
 - `pnpm run deploy` (production) and `pnpm run deploy:preview` build and ship via OpenNext + Cloudflare. Run `pnpm run cf:typegen` after editing bindings or vars in `wrangler.jsonc`; it regenerates `cloudflare-env.d.ts`.
-- Database helpers: `pnpm run db:generate` creates a migration from `app/_infrastructure/schema.ts`; `pnpm run db:migrate:local`, `db:migrate:preview` and `db:migrate:prod` apply migrations; use the paired `db:shell:*` commands for ad-hoc queries.
+- Database helpers: `pnpm run db:generate` creates a migration from `src/infrastructure/schema.ts`; `pnpm run db:migrate:local`, `db:migrate:preview` and `db:migrate:prod` apply migrations; use the paired `db:shell:*` commands for ad-hoc queries.
 
 ## Coding Style & Naming Conventions
 - TypeScript is required; prefer explicit types on exported functions. Use 2-space indentation and keep imports sorted logically (React/Next, third-party, local).
-- Components and server actions follow PascalCase filenames; route handlers stay lowercase (`route.ts`, `layout.tsx`). Tailwind classes drive styling—share design tokens via `app/styles` when possible.
+- Components and server actions follow PascalCase filenames; route handlers stay lowercase (`route.ts`, `layout.tsx`). Tailwind classes drive styling—share design tokens via `src/app/styles` when possible.
 - Run ESLint before committing; add targeted `// eslint-disable-next-line` comments only when justified.
 
 ## Testing Guidelines
-- Vitest tests (`pnpm run test:run`) for a single module sit next to it as `<module>.test.ts` (e.g. `app/_application/todos.test.ts`, `app/api/images/[...key]/route.test.ts`), so the per-layer lint rules apply to them too. `__tests__/` keeps only cross-cutting tests (sample rendering, the Nx dependency-boundary contract, the E2E resource fixture lifecycle) and `stubs/`. Use Japanese behavior names for new tests. Keep boundary checks covering aliases, relative imports, project cycles and the per-layer rules under `app/`.
+- Vitest tests (`pnpm run test:run`) for a single module sit next to it as `<module>.test.ts` (e.g. `src/application/todos.test.ts`, `src/app/api/images/[...key]/route.test.ts`), so the per-layer lint rules apply to them too. `__tests__/` keeps only cross-cutting tests (sample rendering, the Nx dependency-boundary contract, the E2E resource fixture lifecycle) and `stubs/`. Use Japanese behavior names for new tests. Keep boundary checks covering aliases, relative imports, project cycles and the per-layer rules under `src/`.
 - Always run `pnpm run lint` and `pnpm run build` before pushing. For database changes, exercise migrations locally via `db:migrate:local` and seed data through the D1 shell commands. Playwright E2E tests live in `e2e/` (`pnpm run test:e2e`); see the README for Clerk test-instance requirements.
 
 ## Commit & Pull Request Guidelines

@@ -18,17 +18,17 @@ describe("共有 UI の依存境界", () => {
     expect(graph.dependencies.web).toContainEqual(expect.objectContaining({ target: "ui" }));
 
     const [result] = await new ESLint().lintText('export { Card } from "@cf-next/ui";', {
-      filePath: "app/components/boundary-check.ts",
+      filePath: "src/app/components/boundary-check.ts",
     });
     expect(result.errorCount).toBe(0);
   });
 
   it.each([
     ["エイリアス", 'export { default as Footer } from "@/app/components/footer";'],
-    ["相対パス", 'export { default as Footer } from "../../../app/components/footer";'],
+    ["相対パス", 'export { default as Footer } from "../../../src/app/components/footer";'],
     ["アプリのパッケージ名", 'export * from "cf-next-workers-d1-r2-boilerplate";'],
-    ["動的 import", 'export const loadFooter = () => import("../../../app/components/footer");'],
-    ["require", 'export const loadFooter = () => require("../../../app/components/footer");'],
+    ["動的 import", 'export const loadFooter = () => import("../../../src/app/components/footer");'],
+    ["require", 'export const loadFooter = () => require("../../../src/app/components/footer");'],
     ["認証", 'export * from "@clerk/nextjs";'],
     ["データベース", 'export * from "drizzle-orm";'],
     ["ストレージ SDK", 'export * from "@aws-sdk/client-s3";'],
@@ -49,32 +49,32 @@ describe("共有 UI の依存境界", () => {
 
 describe("アプリ内の層の依存境界", () => {
   it.each([
-    ["Domain", "app/_domain/boundary-check.ts", 'export type { Todo } from "./todo";'],
-    ["Application", "app/_application/boundary-check.ts", 'export { findTodosByUser } from "@/app/_infrastructure/todos";'],
-    ["Infrastructure", "app/_infrastructure/boundary-check.ts", 'export { eq } from "drizzle-orm";'],
-    ["UI のサーバーファイル", "app/todos/boundary-check.ts", 'export { listTodos } from "@/app/_application/todos";'],
-    ["UI の Client Component", "app/todos/components/boundary-check.ts", 'export { useUser } from "@clerk/nextjs";'],
+    ["Domain", "src/domain/boundary-check.ts", 'export type { Todo } from "./todo";'],
+    ["Application", "src/application/boundary-check.ts", 'export { findTodosByUser } from "@/infrastructure/todos";'],
+    ["Infrastructure", "src/infrastructure/boundary-check.ts", 'export { eq } from "drizzle-orm";'],
+    ["UI のサーバーファイル", "src/app/todos/boundary-check.ts", 'export { listTodos } from "@/application/todos";'],
+    ["UI の Client Component", "src/app/todos/components/boundary-check.ts", 'export { useUser } from "@clerk/nextjs";'],
   ])("正常系: %s は下位の層と許可されたパッケージを利用できる", async (_, filePath, code) => {
     const [result] = await new ESLint().lintText(code, { filePath });
     expect(result.messages.filter((m) => m.ruleId === "no-restricted-imports")).toEqual([]);
   });
 
   it.each([
-    ["Domain から Infrastructure", "app/_domain/boundary-check.ts", 'export { getDb } from "@/app/_infrastructure/db";'],
-    ["Domain から相対パスの Application", "app/_domain/boundary-check.ts", 'export { listTodos } from "../_application/todos";'],
-    ["Domain から ORM", "app/_domain/boundary-check.ts", 'export { eq } from "drizzle-orm";'],
-    ["Domain から Next.js", "app/_domain/boundary-check.ts", 'export { redirect } from "next/navigation";'],
-    ["Application から ORM", "app/_application/boundary-check.ts", 'export { eq } from "drizzle-orm";'],
-    ["Application から Clerk", "app/_application/boundary-check.ts", 'export { auth } from "@clerk/nextjs/server";'],
-    ["Application から Cloudflare バインディング", "app/_application/boundary-check.ts", 'export { getCloudflareContext } from "@opennextjs/cloudflare";'],
-    ["Application から Next.js のキャッシュ操作", "app/_application/boundary-check.ts", 'export { revalidatePath } from "next/cache";'],
-    ["Infrastructure から Application", "app/_infrastructure/boundary-check.ts", 'export { listTodos } from "@/app/_application/todos";'],
-    ["Infrastructure から Next.js", "app/_infrastructure/boundary-check.ts", 'export { redirect } from "next/navigation";'],
-    ["UI から Infrastructure", "app/todos/boundary-check.ts", 'export { getDb } from "@/app/_infrastructure/db";'],
-    ["UI から相対パスの Infrastructure", "app/api/images/boundary-check.ts", 'export { getObject } from "../../_infrastructure/storage";'],
-    ["UI から ORM", "app/todos/boundary-check.ts", 'export { eq } from "drizzle-orm";'],
-    ["UI から Clerk のサーバー SDK", "app/admin/boundary-check.ts", 'export { auth } from "@clerk/nextjs/server";'],
-    ["UI から Cloudflare バインディング", "app/api/images/boundary-check.ts", 'export { getCloudflareContext } from "@opennextjs/cloudflare";'],
+    ["Domain から Infrastructure", "src/domain/boundary-check.ts", 'export { getDb } from "@/infrastructure/db";'],
+    ["Domain から相対パスの Application", "src/domain/boundary-check.ts", 'export { listTodos } from "../application/todos";'],
+    ["Domain から ORM", "src/domain/boundary-check.ts", 'export { eq } from "drizzle-orm";'],
+    ["Domain から Next.js", "src/domain/boundary-check.ts", 'export { redirect } from "next/navigation";'],
+    ["Application から ORM", "src/application/boundary-check.ts", 'export { eq } from "drizzle-orm";'],
+    ["Application から Clerk", "src/application/boundary-check.ts", 'export { auth } from "@clerk/nextjs/server";'],
+    ["Application から Cloudflare バインディング", "src/application/boundary-check.ts", 'export { getCloudflareContext } from "@opennextjs/cloudflare";'],
+    ["Application から Next.js のキャッシュ操作", "src/application/boundary-check.ts", 'export { revalidatePath } from "next/cache";'],
+    ["Infrastructure から Application", "src/infrastructure/boundary-check.ts", 'export { listTodos } from "@/application/todos";'],
+    ["Infrastructure から Next.js", "src/infrastructure/boundary-check.ts", 'export { redirect } from "next/navigation";'],
+    ["UI から Infrastructure", "src/app/todos/boundary-check.ts", 'export { getDb } from "@/infrastructure/db";'],
+    ["UI から相対パスの Infrastructure", "src/app/api/images/boundary-check.ts", 'export { getObject } from "../../../infrastructure/storage";'],
+    ["UI から ORM", "src/app/todos/boundary-check.ts", 'export { eq } from "drizzle-orm";'],
+    ["UI から Clerk のサーバー SDK", "src/app/admin/boundary-check.ts", 'export { auth } from "@clerk/nextjs/server";'],
+    ["UI から Cloudflare バインディング", "src/app/api/images/boundary-check.ts", 'export { getCloudflareContext } from "@opennextjs/cloudflare";'],
   ])("異常系: %s への依存は拒否される", async (_, filePath, code) => {
     const [result] = await new ESLint().lintText(code, { filePath });
     expect(result.messages).toContainEqual(
