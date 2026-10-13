@@ -113,20 +113,20 @@ Visit [http://localhost:3000](http://localhost:3000) to see your app!
 │   ├── api/images/        # R2 image delivery route
 │   ├── profile/           # Profile page with image upload
 │   ├── sign-in/, sign-up/ # Clerk authentication pages
-│   ├── todos/             # Todo app example
-│   ├── components/        # React components
-│   └── styles/            # Global styles
+│   ├── todos/             # Todo app example (page, actions.ts, components/)
+│   ├── components/        # React components shared across routes
+│   ├── styles/            # Global styles
+│   ├── _application/      # Use cases: authn/authz, orchestration (server-only)
+│   ├── _domain/           # DTO types, zod schemas, constants, error classes
+│   ├── _infrastructure/   # D1/drizzle, R2, Clerk SDK access (server-only)
+│   └── _lib/              # UI-side helpers (page error mapping, ActionResult)
 ├── packages/ui/           # Shared presentation-only components (@cf-next/ui)
-├── lib/                   # Shared utilities
-│   ├── db/               # Database schema and client
-│   ├── r2/               # R2 storage client
-│   └── schemas/          # Zod validation schemas
 ├── __tests__/            # Vitest tests
 ├── e2e/                  # Playwright specs, page objects and fixtures
 ├── .github/workflows/     # Production deploy workflow
 ├── drizzle/              # Database migrations
 ├── public/               # Static assets
-├── middleware.ts         # Clerk auth and admin authorization
+├── middleware.ts         # Clerk sign-in redirect (authorization lives in app/_application)
 ├── open-next.config.ts   # OpenNext Cloudflare adapter config
 ├── wrangler.jsonc        # Cloudflare Workers config
 └── package.json          # Dependencies and scripts
@@ -184,8 +184,8 @@ checks pass.
 Next.js 16 uses Turbopack for development and production builds. ESLint runs
 separately via `pnpm run lint`; `next build` no longer runs it.
 
-Keep `middleware.ts` for Clerk authentication and admin authorization: it uses
-the Edge runtime. The Node.js runtime used by `proxy.ts` is not supported by
+Keep `middleware.ts` for the Clerk sign-in redirect (authorization lives in
+`app/_application`, see `ARCHITECTURE.md`): it uses the Edge runtime. The Node.js runtime used by `proxy.ts` is not supported by
 the [OpenNext Cloudflare adapter](https://opennext.js.org/cloudflare). Revisit
 this when the adapter supports Node.js middleware/proxy.
 

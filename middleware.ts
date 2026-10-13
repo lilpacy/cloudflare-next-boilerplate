@@ -1,36 +1,19 @@
-import {
-  clerkMiddleware,
-  createRouteMatcher,
-  clerkClient,
-} from "@clerk/nextjs/server";
+import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
 const isAdminRoute = createRouteMatcher(["/admin(.*)"]);
 
-// Configure admin emails via environment variable
-// Example: ADMIN_EMAILS="admin@example.com,user@example.com"
-const ADMIN_EMAILS = new Set<string>(
-  process.env.ADMIN_EMAILS?.split(",").map(email => email.trim()) || []
-);
-
+// Authentication only: unauthenticated visitors of admin routes are sent to
+// sign-in. Authorization (ADMIN_EMAILS) lives in app/_application; path
+// matching here cannot protect Server Actions, which are POSTed to any page.
 export default clerkMiddleware(async (auth, req) => {
-  // Protect admin routes
   if (isAdminRoute(req)) {
     const { userId } = await auth();
 
-    // Require authentication for admin routes
     if (!userId) {
       const signInUrl = new URL("/sign-in", req.url);
       signInUrl.searchParams.set("redirect_url", req.url);
       return NextResponse.redirect(signInUrl);
-    }
-
-    // Enforce admin authorization
-    const client = await clerkClient();
-    const user = await client.users.getUser(userId);
-    const email = user.primaryEmailAddress?.emailAddress;
-    if (!email || !ADMIN_EMAILS.has(email)) {
-      return NextResponse.redirect(new URL("/", req.url));
     }
   }
 

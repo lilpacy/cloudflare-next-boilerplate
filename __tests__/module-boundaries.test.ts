@@ -52,6 +52,8 @@ describe("アプリ内の層の依存境界", () => {
     ["Domain", "app/_domain/boundary-check.ts", 'export type { Todo } from "./todo";'],
     ["Application", "app/_application/boundary-check.ts", 'export { findTodosByUser } from "@/app/_infrastructure/todos";'],
     ["Infrastructure", "app/_infrastructure/boundary-check.ts", 'export { eq } from "drizzle-orm";'],
+    ["UI のサーバーファイル", "app/todos/boundary-check.ts", 'export { listTodos } from "@/app/_application/todos";'],
+    ["UI の Client Component", "app/todos/components/boundary-check.ts", 'export { useUser } from "@clerk/nextjs";'],
   ])("正常系: %s は下位の層と許可されたパッケージを利用できる", async (_, filePath, code) => {
     const [result] = await new ESLint().lintText(code, { filePath });
     expect(result.messages.filter((m) => m.ruleId === "no-restricted-imports")).toEqual([]);
@@ -68,6 +70,11 @@ describe("アプリ内の層の依存境界", () => {
     ["Application から Next.js のキャッシュ操作", "app/_application/boundary-check.ts", 'export { revalidatePath } from "next/cache";'],
     ["Infrastructure から Application", "app/_infrastructure/boundary-check.ts", 'export { listTodos } from "@/app/_application/todos";'],
     ["Infrastructure から Next.js", "app/_infrastructure/boundary-check.ts", 'export { redirect } from "next/navigation";'],
+    ["UI から Infrastructure", "app/todos/boundary-check.ts", 'export { getDb } from "@/app/_infrastructure/db";'],
+    ["UI から相対パスの Infrastructure", "app/api/images/boundary-check.ts", 'export { getObject } from "../../_infrastructure/storage";'],
+    ["UI から ORM", "app/todos/boundary-check.ts", 'export { eq } from "drizzle-orm";'],
+    ["UI から Clerk のサーバー SDK", "app/admin/boundary-check.ts", 'export { auth } from "@clerk/nextjs/server";'],
+    ["UI から Cloudflare バインディング", "app/api/images/boundary-check.ts", 'export { getCloudflareContext } from "@opennextjs/cloudflare";'],
   ])("異常系: %s への依存は拒否される", async (_, filePath, code) => {
     const [result] = await new ESLint().lintText(code, { filePath });
     expect(result.messages).toContainEqual(
