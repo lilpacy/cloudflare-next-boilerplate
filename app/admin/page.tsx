@@ -16,21 +16,21 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const stats = await getAllTodosStatsForAdmin();
+        setStats(stats);
+      } catch (error) {
+        console.error("Failed to fetch stats:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     if (isLoaded && user) {
       fetchStats();
     }
   }, [isLoaded, user]);
-
-  const fetchStats = async () => {
-    try {
-      const stats = await getAllTodosStatsForAdmin();
-      setStats(stats);
-    } catch (error) {
-      console.error("Failed to fetch stats:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   if (!isLoaded || loading) {
     return (
