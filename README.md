@@ -358,6 +358,12 @@ resources or run E2E tests. See [Cloudflare's CI authentication guide](https://d
 
 ### Preview Environment
 
+For manual preview deployment, set the preview `NEXT_PUBLIC_*` build variables
+in the shell or `.env.local`, especially the Clerk test-instance publishable key
+and preview base URL. `--env preview` selects Wrangler bindings; it does not load
+`env.preview.vars` into Next.js build-time variables. CI exports these variables
+automatically, while the manual command requires this setup.
+
 ```bash
 pnpm run db:migrate:preview
 pnpm run deploy:preview
