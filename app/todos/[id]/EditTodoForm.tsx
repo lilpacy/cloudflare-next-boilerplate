@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { PrimaryButton, TextInput, Textarea } from "@cf-next/ui";
 import { useRouter } from "next/navigation";
 import { updateTodo } from "@/app/actions/todos";
 
@@ -60,13 +61,12 @@ export function EditTodoForm({ todo }: { todo: Todo }) {
           <label htmlFor="title" className="block text-sm font-medium mb-1">
             Title
           </label>
-          <input
+          <TextInput
             type="text"
             id="title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             disabled={isPending}
-            className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Enter todo title"
             maxLength={200}
           />
@@ -76,12 +76,11 @@ export function EditTodoForm({ todo }: { todo: Todo }) {
           <label htmlFor="description" className="block text-sm font-medium mb-1">
             Description (optional)
           </label>
-          <textarea
+          <Textarea
             id="description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             disabled={isPending}
-            className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Enter todo description"
             rows={4}
             maxLength={1000}
@@ -103,13 +102,13 @@ export function EditTodoForm({ todo }: { todo: Todo }) {
         </div>
 
         <div className="flex gap-3 pt-4">
-          <button
+          <PrimaryButton
             type="submit"
             disabled={isPending || !title.trim()}
-            className="flex-1 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1"
           >
             {isPending ? "Saving..." : "Save Changes"}
-          </button>
+          </PrimaryButton>
           <button
             type="button"
             onClick={handleCancel}

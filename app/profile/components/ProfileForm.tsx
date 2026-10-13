@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition, useRef } from "react";
+import { PrimaryButton } from "@cf-next/ui";
 import { uploadProfileImage, deleteProfileImage } from "@/app/actions/profile";
 import Image from "next/image";
 
@@ -168,13 +169,12 @@ export function ProfileForm({ profile }: { profile: Profile }) {
           )}
 
           <div className="flex gap-3">
-            <button
+            <PrimaryButton
               type="submit"
               disabled={isPending || !previewUrl}
-              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isPending ? "Uploading..." : "Upload Image"}
-            </button>
+            </PrimaryButton>
 
             {profile?.profileImageUrl && (
               <button
