@@ -423,7 +423,7 @@ Visit `/todos` after signing in to see it in action.
 If you want to start fresh without the Todo example:
 
 1. Delete `app/todos/` directory
-2. Delete `app/actions/todos.ts`, `app/_application/todos.ts`, `app/_infrastructure/todos.ts` and `app/_domain/todo.ts`
+2. Delete `app/_application/todos.ts`, `app/_infrastructure/todos.ts` and `app/_domain/todo.ts`
 3. Update `app/_infrastructure/schema.ts` to remove the todos table
 4. Create new migration: `pnpm run db:generate`
 5. Update navigation in `app/components/navigation.tsx`

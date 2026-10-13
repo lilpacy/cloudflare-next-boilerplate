@@ -3,13 +3,13 @@ import type { APIResponse, Locator, Page } from "@playwright/test";
 export class ProfilePage {
   readonly preview: Locator;
   readonly currentImage: Locator;
-  readonly storedImage: Locator;
+  readonly profileImage: Locator;
   readonly deleteButton: Locator;
 
   constructor(private readonly page: Page) {
     this.preview = page.getByText("Preview:");
     this.currentImage = page.getByText("Current image:");
-    this.storedImage = page.getByText(/Image stored in R2: profiles\//);
+    this.profileImage = page.getByRole("img", { name: "Profile" });
     this.deleteButton = page.getByRole("button", { name: "Delete Current Image" });
   }
 
@@ -25,10 +25,10 @@ export class ProfilePage {
     await this.page.getByRole("button", { name: "Upload Image" }).click();
   }
 
-  async fetchStoredImage(): Promise<APIResponse> {
-    const keyText = await this.storedImage.textContent();
-    const key = keyText!.replace("Image stored in R2: ", "").trim();
-    return this.page.request.get(`/api/images/${key}`);
+  async fetchProfileImage(): Promise<APIResponse> {
+    const src = await this.profileImage.getAttribute("src");
+    if (!src) throw new Error("Profile image has no src");
+    return this.page.request.get(src);
   }
 
   async deleteImage(): Promise<void> {

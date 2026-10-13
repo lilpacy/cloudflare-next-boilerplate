@@ -1,35 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getR2Bucket } from "@/lib/r2/client";
+import { readProfileImage } from "@/app/_application/profile";
+import { NotFoundError, UnauthorizedError } from "@/app/_domain/errors";
 
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ key: string[] }> }
 ) {
+  const { key: keyArray } = await params;
+  const key = keyArray.join("/");
+
   try {
-    const { key: keyArray } = await params;
-    const key = keyArray.join("/");
-
-    if (!key) {
-      return new NextResponse("Missing key", { status: 400 });
-    }
-
-    const bucket = getR2Bucket();
-    const object = await bucket.get(key);
-
-    if (!object) {
-      return new NextResponse("Image not found", { status: 404 });
-    }
-
-    const blob = await object.blob();
-
-    return new NextResponse(blob, {
+    const image = await readProfileImage(key);
+    return new NextResponse(image.body, {
       headers: {
-        "Content-Type": object.httpMetadata?.contentType || "image/jpeg",
-        "Cache-Control": "public, max-age=31536000, immutable",
+        "Content-Type": image.contentType,
+        // The response is authorized per user; shared caches must not reuse it.
+        "Cache-Control": "private, max-age=31536000, immutable",
       },
     });
   } catch (error) {
-    console.error("Error fetching image:", error);
-    return new NextResponse("Internal Server Error", { status: 500 });
+    if (error instanceof UnauthorizedError) return new NextResponse("Unauthorized", { status: 401 });
+    if (error instanceof NotFoundError) return new NextResponse("Image not found", { status: 404 });
+    throw error;
   }
 }

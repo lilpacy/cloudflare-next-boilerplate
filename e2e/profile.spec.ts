@@ -18,7 +18,7 @@ test.describe("プロフィール画像", () => {
     await profile.uploadImage();
 
     await expect(profile.currentImage).toBeVisible();
-    await expect(profile.storedImage).toBeVisible();
+    await expect(profile.profileImage).toBeVisible();
   });
 
   test("正常系: アップロードした画像は画像 API からも取得できる", async ({
@@ -26,7 +26,7 @@ test.describe("プロフィール画像", () => {
   }) => {
     await profile.open();
 
-    const response = await profile.fetchStoredImage();
+    const response = await profile.fetchProfileImage();
 
     expect(response.status()).toBe(200);
     expect(response.headers()["content-type"]).toMatch(/^image\//);

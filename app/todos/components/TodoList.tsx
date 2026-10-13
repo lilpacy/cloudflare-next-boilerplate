@@ -4,23 +4,28 @@ import Link from "next/link";
 import { format } from "date-fns";
 import { useState, useTransition } from "react";
 import type { Todo } from "@/app/_domain/todo";
-import { deleteTodo, toggleTodoCompleted } from "@/app/actions/todos";
+import { deleteTodoAction, toggleTodoAction } from "@/app/todos/actions";
 
 export function TodoList({ todos }: { todos: Todo[] }) {
   const [isPending, startTransition] = useTransition();
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const handleToggle = (id: string) => {
+    setError(null);
     startTransition(async () => {
-      await toggleTodoCompleted(id);
+      const result = await toggleTodoAction(id);
+      if (!result.ok) setError(result.error);
     });
   };
 
   const handleDelete = (id: string) => {
     if (confirm("Are you sure you want to delete this todo?")) {
+      setError(null);
       setDeletingId(id);
       startTransition(async () => {
-        await deleteTodo(id);
+        const result = await deleteTodoAction(id);
+        if (!result.ok) setError(result.error);
         setDeletingId(null);
       });
     }
@@ -36,6 +41,11 @@ export function TodoList({ todos }: { todos: Todo[] }) {
 
   return (
     <div className="space-y-4">
+      {error && (
+        <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded">
+          {error}
+        </div>
+      )}
       {todos.map((todo) => (
         <div
           key={todo.id}

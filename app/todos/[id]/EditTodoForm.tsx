@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { PrimaryButton, TextInput, Textarea } from "@cf-next/ui";
 import { useRouter } from "next/navigation";
 import type { Todo } from "@/app/_domain/todo";
-import { updateTodo } from "@/app/actions/todos";
+import { updateTodoAction } from "@/app/todos/actions";
 
 export function EditTodoForm({ todo }: { todo: Todo }) {
   const [title, setTitle] = useState(todo.title);
@@ -24,17 +24,17 @@ export function EditTodoForm({ todo }: { todo: Todo }) {
     }
 
     startTransition(async () => {
-      try {
-        await updateTodo(todo.id, {
-          title: title.trim(),
-          description: description.trim() || undefined,
-          completed,
-        });
-        router.push("/todos");
-        router.refresh();
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to update todo");
+      const result = await updateTodoAction(todo.id, {
+        title: title.trim(),
+        description: description.trim() || undefined,
+        completed,
+      });
+      if (!result.ok) {
+        setError(result.error);
+        return;
       }
+      router.push("/todos");
+      router.refresh();
     });
   };
 

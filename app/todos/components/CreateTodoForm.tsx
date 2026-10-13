@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { PrimaryButton, TextInput, Textarea } from "@cf-next/ui";
-import { createTodo } from "@/app/actions/todos";
+import { createTodoAction } from "@/app/todos/actions";
 import { useRouter } from "next/navigation";
 
 export function CreateTodoForm() {
@@ -22,18 +22,18 @@ export function CreateTodoForm() {
     }
 
     startTransition(async () => {
-      try {
-        await createTodo({
-          title: title.trim(),
-          description: description.trim() || undefined,
-          completed: false,
-        });
-        setTitle("");
-        setDescription("");
-        router.refresh();
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to create todo");
+      const result = await createTodoAction({
+        title: title.trim(),
+        description: description.trim() || undefined,
+        completed: false,
+      });
+      if (!result.ok) {
+        setError(result.error);
+        return;
       }
+      setTitle("");
+      setDescription("");
+      router.refresh();
     });
   };
 
