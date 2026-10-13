@@ -2,6 +2,8 @@
 @use "./_tokens.scss" as *;
 @use "tailwindcss";
 
+@source "../../packages/ui/src";
+
 
 // Link styles for content areas only
 .prose a,

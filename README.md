@@ -162,6 +162,36 @@ the build environment. Set `CLERK_SECRET_KEY` in `.dev.vars` for local Workers
 preview and in `.env.local` for `next dev`. Use `pnpm run preview:cf` to verify
 D1/R2 bindings in Workers; `pnpm run start` runs the Next.js Node server.
 
+## Workspace UI and dependency boundaries
+
+The Next.js application stays at the repository root. `packages/ui` is the
+private `@cf-next/ui` React package; the homepage uses its `Card` component.
+The package exports TypeScript source, and Next.js processes it through
+`transpilePackages`. It has no independent build/watch process.
+
+- `pnpm dev`: start the application; edits in `packages/ui/src` use Fast Refresh.
+- `pnpm graph`: open the Nx project graph (`web` → `ui`).
+- `pnpm exec nx graph --file=.nx/project-graph.json`: export the graph as JSON.
+- `pnpm type-check`: check the app and the standalone UI package.
+- `pnpm lint`: generate a fresh Nx graph, then run ESLint and boundary checks.
+- `pnpm test:run`: run the existing tests and the dependency-boundary contract test.
+
+The `type:ui` project cannot import the app, even through `@/` aliases, relative
+paths, re-exports, dynamic imports, or require calls. It also cannot import the
+app's Clerk, Drizzle, AWS storage SDK or OpenNext binding packages. Cross-project
+cycles are rejected. Existing aliases within the app remain allowed; file-level
+cycles within one project are not checked by this project-boundary rule
+([follow-up LIL-583](https://linear.app/lilpacy/issue/LIL-583)).
+
+Tailwind explicitly scans `packages/ui/src` through `@source` in the existing
+SCSS entry. Sass and the existing styling remain unchanged.
+
+Boundary enforcement runs in `pnpm lint` and the existing Husky pre-commit hook;
+this repository has no GitHub CI workflow. A future CI job should run
+`pnpm lint`, `pnpm type-check` and `pnpm test:run`. Plain `eslint`/IDE lint needs
+an existing Nx graph; the rule can skip if that cache is missing, so use
+`pnpm lint` as the required gate. Nx Cloud is not configured.
+
 ## E2E Testing
 
 ```bash
