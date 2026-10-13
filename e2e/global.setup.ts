@@ -3,14 +3,12 @@ import { clerk, clerkSetup } from "@clerk/testing/playwright";
 import { test as setup } from "@playwright/test";
 import { HomePage } from "./pages/HomePage";
 import { TodosPage } from "./pages/TodosPage";
-import {
-  ADMIN_STORAGE_STATE,
-  E2E_ADMIN_EMAIL,
-  E2E_USER_EMAIL,
-  USER_STORAGE_STATE,
-} from "./test-users";
+import { ADMIN_STORAGE_STATE, E2E_ADMIN_EMAIL } from "./test-users";
 
 setup("Clerk と D1 を初期化し、テストユーザーでサインインする", async ({ browser }) => {
+  if (!process.env.CLERK_SECRET_KEY?.startsWith("sk_test_")) {
+    throw new Error("E2E requires a Clerk test secret key");
+  }
   await clerkSetup();
 
   const d1Target =
@@ -21,15 +19,8 @@ setup("Clerk と D1 を初期化し、テストユーザーでサインインす
   execSync(`pnpm exec wrangler d1 migrations apply ${d1Target}`, {
     stdio: "inherit",
   });
-  execSync(
-    `pnpm exec wrangler d1 execute ${d1Target} --command "DELETE FROM todos; DELETE FROM users;"`,
-    { stdio: "inherit" }
-  );
-
-  await ensureClerkUser(E2E_USER_EMAIL);
   await ensureClerkUser(E2E_ADMIN_EMAIL);
 
-  await saveSignedInState(browser, E2E_USER_EMAIL, USER_STORAGE_STATE);
   await saveSignedInState(browser, E2E_ADMIN_EMAIL, ADMIN_STORAGE_STATE);
 });
 

@@ -198,18 +198,24 @@ an existing Nx graph; the rule can skip if that cache is missing, so use
 # Against a local dev server (started automatically by Playwright)
 pnpm run test:e2e
 
+# Run independent scenarios in parallel (default: one worker)
+pnpm run test:e2e --workers=3
+
 # Against the deployed preview worker
 E2E_ENV=preview E2E_PREVIEW_URL=https://my-app-preview.<account>.workers.dev pnpm run test:e2e
 ```
 
-E2E tests require `CLERK_SECRET_KEY` in `.env` or `.env.local` (used to create
-test users via the Clerk API).
+E2E tests require a Clerk **test instance** (`CLERK_SECRET_KEY` starting with
+`sk_test_` and `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`) in `.env` or `.env.local`.
+Each authenticated scenario creates a unique test user and deletes it afterward.
+The fixed admin account is retained for the read-only dashboard scenario.
 
 Page Objects live in `e2e/pages`: `HomePage`, `TodosPage`, `EditTodoPage`,
 `ProfilePage`, and `AdminPage` own their page's locators and interactions;
 `Navigation` owns the shared desktop/mobile menu. Specs keep scenario data,
-assertions, serial ordering, and storage-state selection. Clerk sign-in/out and
-D1 preparation stay in the existing authentication/setup code.
+assertions, and fixture selection. Clerk sign-in/out stays in authentication
+fixtures/specs; global setup initializes Clerk, applies migrations, and saves
+only the fixed admin storage state.
 
 ```ts
 const todos = new TodosPage(page);
@@ -220,15 +226,33 @@ await expect(todos.titleInput).toHaveValue("");
 ```
 
 Expose native Playwright locators for web-first assertions; add page-specific
-actions to the relevant object rather than DOM selectors to specs. The Todo
-suite creates one Todo at a time, so its edit/toggle/delete actions require a
-single matching Todo. Run `pnpm run test:e2e --list` to check test discovery
-without starting the server or running the destructive setup.
+actions to the relevant object rather than DOM selectors to specs. Each Todo
+scenario uses its own user and at most one Todo, so its edit/toggle/delete
+actions require a single matching Todo. Run `pnpm run test:e2e --list` to check test discovery
+without starting the server or executing setup.
 
-> **Warning**: `E2E_ENV=preview` wipes all rows in the preview D1 database
-> (`todos` and `users`) before running. The preview environment is dedicated
-> to E2E verification — do not use it for manual staging checks, and do not
-> run preview E2E jobs concurrently.
+Test resources live in `e2e/fixtures`. `ResourceFixture.run` executes
+`create → precheck → use → cleanup` once per instance. Cleanup runs even when
+creation fails partway; simultaneous operation and cleanup errors are preserved
+as an `AggregateError`. Playwright fixtures create a new `UserResource` per
+case; `TodoResource` and `ProfileImageResource` seed only the cases that need
+existing data. No scenario depends on another scenario's mutations or order.
+
+`UserResource` owns its newly created Clerk user, D1 rows with that user ID, and
+R2 keys under `profiles/<userId>/`, including uploads without a profile DB row.
+Cleanup attempts D1, R2, and Clerk independently and reports failures.
+Global setup no longer deletes all rows in `todos` or `users`.
+
+Local fixtures use the worktree's `.wrangler/state/v3`. Preview fixtures select
+only the preview DB/R2 bindings through Wrangler's remote binding proxy, so
+preview execution also requires Wrangler/Cloudflare authentication. The proxy
+uses a temporary binding-only config; app variables, secrets, and the committed
+Wrangler config are not copied or modified.
+
+> Use a dedicated E2E preview environment: setup still applies schema migrations
+> and ensures the fixed admin account. Fixture cleanup deletes only resources
+> owned by each test. Avoid concurrently provisioning the same preview schema
+> from multiple CI jobs; initialize it once before running shards.
 
 ## Deployment
 

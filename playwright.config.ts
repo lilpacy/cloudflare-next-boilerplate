@@ -19,7 +19,7 @@ if (isPreview && !process.env.E2E_PREVIEW_URL) {
 
 export default defineConfig({
   testDir: "./e2e",
-  fullyParallel: false,
+  fullyParallel: true,
   workers: 1,
   forbidOnly: !!process.env.CI,
   retries: 0,

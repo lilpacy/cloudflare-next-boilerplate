@@ -1,14 +1,12 @@
-import { expect, test } from "@playwright/test";
+import { expect } from "@playwright/test";
+import { test } from "./fixtures/test";
 import { HomePage } from "./pages/HomePage";
 import { Navigation } from "./pages/Navigation";
 import { TodosPage } from "./pages/TodosPage";
-import { USER_STORAGE_STATE } from "./test-users";
-
-test.use({ storageState: USER_STORAGE_STATE });
 
 test.describe("ナビゲーション", () => {
   test("正常系: ナビのリンクから各ページへ移動でき、現在地のリンクが強調される", async ({
-    page,
+    signedInPage: page,
   }) => {
     await new HomePage(page).open();
 
@@ -28,7 +26,7 @@ test.describe("ナビゲーション", () => {
   });
 
   test("正常系: モバイル表示ではハンバーガーメニューからページへ移動できる", async ({
-    page,
+    signedInPage: page,
   }) => {
     await page.setViewportSize({ width: 375, height: 667 });
     await new HomePage(page).open();
