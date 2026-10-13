@@ -5,7 +5,7 @@ import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
 initOpenNextCloudflareForDev();
 
 const nextConfig: NextConfig = {
-  transpilePackages: ["@cf-next/ui"],
+  transpilePackages: ["@cf-next/database", "@cf-next/ui"],
   images: {
     unoptimized: true, // disable on Cloudflare workers
   },

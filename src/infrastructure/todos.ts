@@ -1,9 +1,9 @@
 import "server-only";
 
+import { todos } from "@cf-next/database";
 import { and, desc, eq, sql } from "drizzle-orm";
 import type { Todo, TodoStats } from "@/domain/todo";
 import { getDb } from "./db";
-import { todos } from "./schema";
 
 type TodoRow = typeof todos.$inferSelect;
 

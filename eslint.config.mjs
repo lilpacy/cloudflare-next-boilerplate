@@ -37,8 +37,8 @@ const eslintConfig = [
               message: "Domain depends on nothing: no Application or Infrastructure imports.",
             },
             {
-              group: ["react", "react-dom", "next", "next/**", "drizzle-orm", "drizzle-orm/**", "@clerk/**", "@opennextjs/**"],
-              message: "Domain holds pure types, schemas and rules: no framework or SDK imports.",
+              group: ["react", "react-dom", "next", "next/**", "drizzle-orm", "drizzle-orm/**", "@cf-next/database", "@clerk/**", "@opennextjs/**"],
+              message: "Domain holds pure types, schemas and rules: no framework, SDK or database imports.",
             },
           ],
         },
@@ -53,8 +53,8 @@ const eslintConfig = [
         {
           patterns: [
             {
-              group: ["drizzle-orm", "drizzle-orm/**", "@clerk/**", "@opennextjs/**"],
-              message: "Application orchestrates Infrastructure; SDK access belongs in src/infrastructure.",
+              group: ["drizzle-orm", "drizzle-orm/**", "@cf-next/database", "@clerk/**", "@opennextjs/**"],
+              message: "Application orchestrates Infrastructure; SDK and database access belong in src/infrastructure.",
             },
             {
               group: ["react", "react-dom", "next", "next/**"],
@@ -98,8 +98,8 @@ const eslintConfig = [
               message: "UI reaches data only through src/application use cases.",
             },
             {
-              group: ["drizzle-orm", "drizzle-orm/**", "@clerk/nextjs/server", "@opennextjs/**"],
-              message: "SDK access belongs in src/infrastructure; UI calls src/application.",
+              group: ["drizzle-orm", "drizzle-orm/**", "@cf-next/database", "@clerk/nextjs/server", "@opennextjs/**"],
+              message: "SDK and database access belong in src/infrastructure; UI calls src/application.",
             },
           ],
         },
@@ -117,7 +117,7 @@ const eslintConfig = [
           allowCircularSelfDependency: true,
           banTransitiveDependencies: true,
           depConstraints: [
-            { sourceTag: "type:app", onlyDependOnLibsWithTags: ["type:ui"] },
+            { sourceTag: "type:app", onlyDependOnLibsWithTags: ["type:ui", "type:database"] },
             {
               sourceTag: "type:ui",
               onlyDependOnLibsWithTags: ["type:ui"],
@@ -128,6 +128,13 @@ const eslintConfig = [
                 "@aws-sdk/*",
                 "@opennextjs/*",
               ],
+            },
+            {
+              // Table definitions and migrations only: no app, UI or framework dependencies,
+              // so a cron Worker or a script can use the package without Next.js.
+              sourceTag: "type:database",
+              onlyDependOnLibsWithTags: [],
+              bannedExternalImports: ["@clerk/*", "@opennextjs/*", "@aws-sdk/*", "next", "next/*", "react", "react-dom", "server-only"],
             },
           ],
         },

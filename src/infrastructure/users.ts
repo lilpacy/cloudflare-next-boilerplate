@@ -1,9 +1,9 @@
 import "server-only";
 
+import { users } from "@cf-next/database";
 import { eq, sql } from "drizzle-orm";
 import type { Profile } from "@/domain/profile";
 import { getDb } from "./db";
-import { users } from "./schema";
 
 export async function findProfile(userId: string): Promise<Profile> {
   const row = await getDb()

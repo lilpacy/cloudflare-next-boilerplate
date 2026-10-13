@@ -1,0 +1,31 @@
+{
+  "name": "@cf-next/database",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "generate": "drizzle-kit generate",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.45.4"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20261013.1",
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^20.19.18",
+    "better-sqlite3": "^12.6.0",
+    "drizzle-kit": "^0.31.11",
+    "vitest": "^4.0.17"
+  },
+  "nx": {
+    "name": "database",
+    "tags": [
+      "type:database"
+    ],
+    "projectType": "library"
+  }
+}
