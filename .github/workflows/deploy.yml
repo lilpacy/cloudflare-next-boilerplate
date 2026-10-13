@@ -39,6 +39,8 @@ jobs:
             }
           };
           mask(config);
+          // CI builds explicitly before migrations; skip Wrangler's custom rebuild.
+          delete config.build;
           assert(config.vars.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY.startsWith('pk_'));
           const vars = Object.entries(config.vars).map(([key, value]) => {
             assert(/^[A-Z][A-Z0-9_]*$/.test(key) && typeof value === 'string' && !/[\r\n]/.test(value));
@@ -48,8 +50,15 @@ jobs:
           fs.appendFileSync(process.env.GITHUB_ENV, vars);
           NODE
       - run: pnpm run lint
-      - name: Build and deploy existing production Worker
-        run: pnpm run deploy
+      - name: Build production Worker
+        run: pnpm exec opennextjs-cloudflare build
+      - name: Migrate production database
+        run: pnpm run db:migrate:prod
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      - name: Deploy production Worker
+        run: pnpm exec opennextjs-cloudflare deploy
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
