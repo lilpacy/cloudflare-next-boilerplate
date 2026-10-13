@@ -24,7 +24,7 @@ export class ProfileImageResource extends ResourceFixture<ProfilePage> {
 
   protected async precheck(profile: ProfilePage): Promise<void> {
     await expect(profile.currentImage).toBeVisible();
-    await expect(profile.storedImage).toBeVisible();
+    await expect(profile.profileImage).toBeVisible();
   }
 
   protected async cleanup(): Promise<void> {

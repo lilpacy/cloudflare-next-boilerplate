@@ -5,7 +5,7 @@ import { PrimaryButton } from "@cf-next/ui";
 import Image from "next/image";
 import type { Profile } from "@/app/_domain/profile";
 import { validateImageFile } from "@/app/_domain/profile-image";
-import { uploadProfileImage, deleteProfileImage } from "@/app/actions/profile";
+import { deleteProfileImageAction, uploadProfileImageAction } from "@/app/profile/actions";
 
 export function ProfileForm({ profile }: { profile: Profile }) {
   const [isPending, startTransition] = useTransition();
@@ -42,18 +42,18 @@ export function ProfileForm({ profile }: { profile: Profile }) {
     const formData = new FormData(e.currentTarget);
 
     startTransition(async () => {
-      try {
-        await uploadProfileImage(formData);
-        setSuccess("Profile image updated successfully!");
-        setPreviewUrl(null);
-        if (fileInputRef.current) {
-          fileInputRef.current.value = "";
-        }
-        // Reload page to show updated image
-        window.location.reload();
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to upload image");
+      const result = await uploadProfileImageAction(formData);
+      if (!result.ok) {
+        setError(result.error);
+        return;
       }
+      setSuccess("Profile image updated successfully!");
+      setPreviewUrl(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+      // Reload page to show updated image
+      window.location.reload();
     });
   };
 
@@ -66,14 +66,14 @@ export function ProfileForm({ profile }: { profile: Profile }) {
     setSuccess(null);
 
     startTransition(async () => {
-      try {
-        await deleteProfileImage();
-        setSuccess("Profile image deleted successfully!");
-        // Reload page to show changes
-        window.location.reload();
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to delete image");
+      const result = await deleteProfileImageAction();
+      if (!result.ok) {
+        setError(result.error);
+        return;
       }
+      setSuccess("Profile image deleted successfully!");
+      // Reload page to show changes
+      window.location.reload();
     });
   };
 
@@ -94,9 +94,6 @@ export function ProfileForm({ profile }: { profile: Profile }) {
                 className="object-cover"
               />
             </div>
-            <p className="text-xs text-gray-500 mt-2">
-              Image stored in R2: {profile.imageKey}
-            </p>
           </div>
         )}
 
