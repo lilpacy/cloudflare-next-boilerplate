@@ -301,27 +301,30 @@ pnpm dlx wrangler secret put CLERK_SECRET_KEY --env preview
 ```
 
 4. Run migrations locally first: `pnpm run db:migrate:local`
-5. Deploy: `pnpm run deploy`
-6. Run remote migrations: `pnpm run db:migrate:prod`
+5. Run remote migrations: `pnpm run db:migrate:prod`
+6. Deploy: `pnpm run deploy`
 
 ### Subsequent Deployments
 
 ```bash
+pnpm run db:migrate:prod
 pnpm run deploy
 ```
 
 ### Automatic Production Deployment
 
 Every push to `master` (including a merged PR) runs `.github/workflows/deploy.yml`.
-GitHub Actions installs the frozen lockfile, runs lint, then runs `pnpm run deploy`
-with Node 22.16.0. Production deploys are serialized without cancelling a running
+GitHub Actions installs the frozen lockfile, runs lint, builds the OpenNext Worker,
+applies pending production D1 migrations with `pnpm run db:migrate:prod`, then
+deploys the built Worker. It uses Node 22.16.0. A build or migration failure stops
+deployment. Production deploys are serialized without cancelling a running
 deployment. Check **Actions → Deploy production** for the result.
 
 Configure these repository **Actions secrets** before merging the workflow:
 
 | Secret | Value |
 | --- | --- |
-| `CLOUDFLARE_API_TOKEN` | API token scoped to the production account with Workers Scripts Write, Workers R2 Storage Write, D1 Read, and Account Settings Read permissions |
+| `CLOUDFLARE_API_TOKEN` | API token scoped to the production account with Workers Scripts Write, Workers R2 Storage Write, D1 Write, and Account Settings Read permissions |
 | `CLOUDFLARE_ACCOUNT_ID` | Existing production Cloudflare account ID |
 | `CLOUDFLARE_WRANGLER_CONFIG` | Complete production Wrangler configuration as valid JSON (remove JSONC comments and trailing commas), including existing D1/R2 bindings and `vars` |
 
@@ -331,9 +334,17 @@ passes its `vars` to the build, including `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` an
 `CLERK_SECRET_KEY` as a Worker secret; do not include it in the config or GitHub
 build environment. Existing Worker secrets are preserved by deployment.
 
+Commit generated SQL migrations under `drizzle/`; CI applies only migrations not
+recorded in D1's migration history. Keep pre-deploy migrations compatible with the
+currently running code (for example, add nullable columns). Remove or rename used
+columns only in a later migration after deploying code that no longer depends on
+them. A Worker rollback does not undo database migrations. For a database created
+outside migrations, verify its schema and establish a baseline migration history
+before enabling this workflow; do not blindly mark migrations as applied.
+
 When changing production bindings or variables, update `CLOUDFLARE_WRANGLER_CONFIG`
-as well. This workflow does not create environments, run database migrations, or
-run E2E tests against production. See [Cloudflare's CI authentication guide](https://developers.cloudflare.com/workers/ci-cd/external-cicd/github-actions/).
+as well. This workflow does not create environments or run E2E tests against
+production. See [Cloudflare's CI authentication guide](https://developers.cloudflare.com/workers/ci-cd/external-cicd/github-actions/).
 
 ### Preview Environment
 
