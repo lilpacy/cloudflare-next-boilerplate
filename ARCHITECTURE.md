@@ -69,8 +69,10 @@ flowchart TB
 
 Exception: `proxy.ts` may import `@clerk/nextjs/server` for `clerkMiddleware`.
 
-The source of truth for these rules is `eslint.config.mjs` (`no-restricted-imports` per layer) and
-`__tests__/module-boundaries.test.ts`. This table is a summary; if they disagree, fix the table.
+Enforcement: per-layer `no-restricted-imports` rules in `eslint.config.mjs` and cases in
+`__tests__/module-boundaries.test.ts` are migration step 5 and **do not exist yet**. Today the only
+lint-enforced boundary is the Nx rule between the app and `packages/ui`. Until step 5 lands, this
+table is the source of truth; once it lands, the lint config is, and this table becomes a summary.
 
 ## Public entry points
 
@@ -146,7 +148,7 @@ Application throws Domain error classes. The UI layer converts them at the entry
 
 | Rule | Why |
 |---|---|
-| Server Components call Application directly instead of going through a Server Action | Every exported `"use server"` function becomes a public POST endpoint. Reads do not need one |
+| Server Components call Application directly instead of going through a Server Action | Every exported `"use server"` function that the app references is a POST endpoint anyone can call (unused ones are stripped at build time, but treat all of them as untrusted input). Reads do not need one |
 | Domain is isomorphic (no `server-only`) | zod schemas and limits such as `MAX_IMAGE_SIZE` are shared between client-side instant validation and server-side final validation, so they are written once |
 | Application imports Infrastructure directly; no repository interfaces or DI | Two features do not justify ports. Unit-test Application with `vi.mock("@/app/_infrastructure/...")`. Introduce interfaces only when a second implementation actually exists |
 | `revalidatePath` / `redirect` live in the UI layer, not in Application | Which URL goes stale is a presentation concern. Application stays callable from cron routes, tests and future APIs without changes |

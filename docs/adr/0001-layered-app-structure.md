@@ -1,6 +1,6 @@
 # ADR-0001: Layered structure for application code under `app/`
 
-- **Status:** Proposed (becomes Accepted when migration step 2 in [ARCHITECTURE.md](../../ARCHITECTURE.md#migration-status) is merged)
+- **Status:** Accepted (applies to new code immediately; existing code is migrated per [ARCHITECTURE.md](../../ARCHITECTURE.md#migration-status))
 - **Date:** 2026-10-14
 - **Deciders:** lilpacy
 
@@ -11,14 +11,15 @@ It is history; read ARCHITECTURE.md for the current rules.
 
 The app has two features (todos, profile) plus an admin stats page. All server logic lives in two
 `"use server"` files, `app/actions/todos.ts` and `app/actions/profile.ts`. Reviewing them against the
-Next.js 16 data-security guide surfaced these problems (line numbers as of commit `b899a74`):
+Next.js 16 data-security guide surfaced these problems (as of commit `b899a74`; referenced by
+function name because line numbers go stale):
 
 | Problem | Where |
 |---|---|
-| Read functions (`getTodos`, `getTodoById`, `getProfile`, `getAllTodosStatsForAdmin`) are exported from `"use server"` files, so each is a public POST endpoint | `app/actions/todos.ts:182,200,341`, `app/actions/profile.ts:17` |
-| `auth()` + "Unauthorized" check is copied 9 times | `app/actions/*.ts` |
-| Admin check (`ADMIN_EMAILS`) is implemented twice | `middleware.ts:491`, `app/actions/todos.ts:354` |
-| `getDb()` is redefined per actions file; `lib/db/client.ts` is unused | `app/actions/todos.ts:177`, `app/actions/profile.ts:12` |
+| Read functions (`getTodos`, `getTodoById`, `getProfile`, `getAllTodosStatsForAdmin`) are exported from `"use server"` files, so each is a POST endpoint reachable by any signed-in user | `app/actions/todos.ts`, `app/actions/profile.ts` |
+| `auth()` + "Unauthorized" check is copied 9 times | every exported function in `app/actions/*.ts` |
+| Admin check (`ADMIN_EMAILS`) is implemented twice | `middleware.ts` (`clerkMiddleware` callback), `app/actions/todos.ts` (`getAllTodosStatsForAdmin`) |
+| `getDb()` is redefined per actions file; `lib/db/client.ts` is unused | top of `app/actions/todos.ts` and `app/actions/profile.ts` |
 | DB rows (including `userId`) are passed to Client Components; the `Todo` type is hand-written twice | `app/todos/components/TodoList.tsx`, `app/todos/[id]/EditTodoForm.tsx` |
 | Image size/MIME validation is duplicated on client and server | `app/profile/components/ProfileForm.tsx`, `app/actions/profile.ts` |
 | `/api/images/[...key]` has no authorization; anyone who knows a key can read any image | `app/api/images/[...key]/route.ts` |
