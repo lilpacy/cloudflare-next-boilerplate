@@ -313,7 +313,7 @@ pnpm run deploy
 
 ### Automatic Preview Deployment
 
-Every push to `master` (including a merged PR) runs `.github/workflows/deploy.yml`.
+Every push to `master` (including a merged PR) runs `.github/workflows/deploy-preview.yml`.
 GitHub Actions installs the frozen lockfile, runs lint, builds the OpenNext Worker
 with `--env preview`, applies pending preview D1 migrations with
 `pnpm run db:migrate:preview`, then deploys with `--env preview`. It uses Node
