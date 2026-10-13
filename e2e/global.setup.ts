@@ -1,6 +1,8 @@
 import { execSync } from "node:child_process";
 import { clerk, clerkSetup } from "@clerk/testing/playwright";
 import { test as setup } from "@playwright/test";
+import { HomePage } from "./pages/HomePage";
+import { TodosPage } from "./pages/TodosPage";
 import {
   ADMIN_STORAGE_STATE,
   E2E_ADMIN_EMAIL,
@@ -65,10 +67,11 @@ async function saveSignedInState(
   const context = await browser.newContext();
   const page = await context.newPage();
 
-  await page.goto("/");
+  await new HomePage(page).open();
   await clerk.signIn({ page, emailAddress: email });
-  await page.goto("/todos");
-  await page.getByRole("heading", { name: "My Todos" }).waitFor();
+  const todos = new TodosPage(page);
+  await todos.open();
+  await todos.heading.waitFor();
 
   await context.storageState({ path: storageStatePath });
   await context.close();

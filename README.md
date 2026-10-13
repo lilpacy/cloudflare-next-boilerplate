@@ -205,6 +205,26 @@ E2E_ENV=preview E2E_PREVIEW_URL=https://my-app-preview.<account>.workers.dev pnp
 E2E tests require `CLERK_SECRET_KEY` in `.env` or `.env.local` (used to create
 test users via the Clerk API).
 
+Page Objects live in `e2e/pages`: `HomePage`, `TodosPage`, `EditTodoPage`,
+`ProfilePage`, and `AdminPage` own their page's locators and interactions;
+`Navigation` owns the shared desktop/mobile menu. Specs keep scenario data,
+assertions, serial ordering, and storage-state selection. Clerk sign-in/out and
+D1 preparation stay in the existing authentication/setup code.
+
+```ts
+const todos = new TodosPage(page);
+await todos.open();
+await todos.create(todoTitle, todoDescription);
+await expect(todos.title(todoTitle)).toBeVisible();
+await expect(todos.titleInput).toHaveValue("");
+```
+
+Expose native Playwright locators for web-first assertions; add page-specific
+actions to the relevant object rather than DOM selectors to specs. The Todo
+suite creates one Todo at a time, so its edit/toggle/delete actions require a
+single matching Todo. Run `pnpm run test:e2e --list` to check test discovery
+without starting the server or running the destructive setup.
+
 > **Warning**: `E2E_ENV=preview` wipes all rows in the preview D1 database
 > (`todos` and `users`) before running. The preview environment is dedicated
 > to E2E verification — do not use it for manual staging checks, and do not
