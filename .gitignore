@@ -50,3 +50,6 @@ next-env.d.ts
 
 # clerk configuration (can include secrets)
 /.clerk/
+
+# Nx local graph and task cache
+/.nx/

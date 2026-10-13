@@ -18,8 +18,8 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint .",
-    "type-check": "tsc --noEmit",
+    "lint": "nx graph --file=.nx/project-graph.json && eslint .",
+    "type-check": "tsc --noEmit && pnpm --filter @cf-next/ui type-check",
     "test": "vitest",
     "test:run": "vitest run",
     "test:watch": "vitest --watch",
@@ -47,7 +47,8 @@
     "storage:create:cache": "wrangler r2 bucket create my-app-cache",
     "storage:create:preview": "wrangler r2 bucket create my-app-storage-preview",
     "storage:create:cache:preview": "wrangler r2 bucket create my-app-cache-preview",
-    "prepare": "husky"
+    "prepare": "husky",
+    "graph": "nx graph"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.899.0",
@@ -58,7 +59,8 @@
     "next": "~16.3.8",
     "react": "19.1.9",
     "react-dom": "19.1.9",
-    "zod": "^4.1.11"
+    "zod": "^4.1.11",
+    "@cf-next/ui": "workspace:*"
   },
   "devDependencies": {
     "@clerk/testing": "^2.1.0",
@@ -83,7 +85,9 @@
     "typescript": "^5",
     "vite-tsconfig-paths": "^6.0.4",
     "vitest": "^4.0.17",
-    "wrangler": "^4.148.0"
+    "wrangler": "^4.148.0",
+    "nx": "23.3.0",
+    "@nx/eslint-plugin": "23.3.0"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
@@ -94,7 +98,15 @@
       "esbuild",
       "sharp",
       "unrs-resolver",
-      "workerd"
+      "workerd",
+      "nx"
     ]
+  },
+  "nx": {
+    "name": "web",
+    "tags": [
+      "type:app"
+    ],
+    "projectType": "application"
   }
 }

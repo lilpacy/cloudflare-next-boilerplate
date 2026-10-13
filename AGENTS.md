@@ -2,6 +2,7 @@
 
 ## Project Structure & Module Organization
 - `app/` hosts the Next.js App Router; page-level logic lives in route folders (e.g., `app/blog`, `app/admin`) with shared UI in `app/components` and utilities in `app/actions`.
+- Shared presentation-only React components live in `packages/ui`; keep Clerk, database and storage logic in the app. `pnpm lint` enforces Nx project boundaries and cross-project cycle restrictions.
 - Domain helpers live under `lib/` (`lib/db` for Drizzle clients, `lib/schemas` for Zod contracts, `lib/utils` for shared helpers). Update these when adjusting data flows.
 - Database migrations sit in `drizzle/`; keep SQL files in sync with generated metadata. Static assets belong in `public/`, and deployment wiring is captured by `open-next.config.ts` and `wrangler.jsonc`.
 
@@ -18,7 +19,7 @@
 - Run ESLint before committing; add targeted `// eslint-disable-next-line` comments only when justified.
 
 ## Testing Guidelines
-- Automated tests are not yet in place; when adding them, colocate files as `*.test.ts` alongside the code and target critical rendering paths and Drizzle queries.
+- Vitest tests include sample rendering and the Nx dependency-boundary contract; use Japanese behavior names for new tests. Keep boundary checks covering aliases, relative imports and project cycles.
 - Always run `pnpm run lint` and `pnpm run build` before pushing. For database changes, exercise migrations locally via `db:migrate:local` and seed data through the D1 shell commands.
 
 ## Commit & Pull Request Guidelines
@@ -27,3 +28,13 @@
 
 ## Security & Configuration Tips
 - Secrets live in Cloudflare env vars; never commit credentials. Update `cloudflare-env.d.ts` and regenerate types when adding keys, and verify `wrangler.jsonc` stays in sync with deployed bindings.
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->
