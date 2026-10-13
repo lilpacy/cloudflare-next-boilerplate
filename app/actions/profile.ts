@@ -2,33 +2,10 @@
 
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
-import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { drizzle } from "drizzle-orm/d1";
 import { eq, sql } from "drizzle-orm";
-import { users } from "@/lib/db/schema";
-import { getR2Bucket } from "@/lib/r2/client";
-
-async function getDb() {
-  const { env } = await getCloudflareContext();
-  return drizzle(env.DB);
-}
-
-export async function getProfile() {
-  const { userId } = await auth();
-
-  if (!userId) {
-    throw new Error("Unauthorized");
-  }
-
-  const db = await getDb();
-  const user = await db
-    .select()
-    .from(users)
-    .where(eq(users.userId, userId))
-    .get();
-
-  return user;
-}
+import { getDb } from "@/app/_infrastructure/db";
+import { users } from "@/app/_infrastructure/schema";
+import { getBucket } from "@/app/_infrastructure/storage";
 
 export async function uploadProfileImage(formData: FormData) {
   const { userId } = await auth();
@@ -55,7 +32,7 @@ export async function uploadProfileImage(formData: FormData) {
   }
 
   try {
-    const bucket = getR2Bucket();
+    const bucket = getBucket();
     const key = `profiles/${userId}/${Date.now()}-${file.name}`;
     const arrayBuffer = await file.arrayBuffer();
 
@@ -66,7 +43,7 @@ export async function uploadProfileImage(formData: FormData) {
     });
 
     // Save to database
-    const db = await getDb();
+    const db = getDb();
 
     // Check if user exists
     const existingUser = await db
@@ -102,26 +79,6 @@ export async function uploadProfileImage(formData: FormData) {
   }
 }
 
-export async function getProfileImageUrl(key: string | null | undefined) {
-  if (!key) return null;
-
-  try {
-    const bucket = getR2Bucket();
-    const object = await bucket.get(key);
-
-    if (!object) {
-      return null;
-    }
-
-    // Generate a temporary URL (you might want to use R2 public URLs or signed URLs in production)
-    // For now, we'll return the key and handle it client-side
-    return key;
-  } catch (error) {
-    console.error("Error getting image:", error);
-    return null;
-  }
-}
-
 export async function deleteProfileImage() {
   const { userId } = await auth();
 
@@ -129,7 +86,7 @@ export async function deleteProfileImage() {
     throw new Error("Unauthorized");
   }
 
-  const db = await getDb();
+  const db = getDb();
 
   // Get current profile
   const user = await db
@@ -143,7 +100,7 @@ export async function deleteProfileImage() {
   }
 
   try {
-    const bucket = getR2Bucket();
+    const bucket = getBucket();
     await bucket.delete(user.profileImageUrl);
 
     // Update database

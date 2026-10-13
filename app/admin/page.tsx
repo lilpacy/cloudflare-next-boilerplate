@@ -1,65 +1,24 @@
-// app/admin/page.tsx
-"use client";
+import type { Metadata } from "next";
+import { getTodoStats } from "@/app/_application/todos";
+import { handlePageError } from "@/app/_lib/page-errors";
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
-import { useUser } from "@clerk/nextjs";
-import { getAllTodosStatsForAdmin } from "@/app/actions/todos";
+export const metadata: Metadata = {
+  title: "Admin",
+  robots: {
+    index: false,
+    follow: false,
+    googleBot: {
+      index: false,
+      follow: false,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+};
 
-export default function AdminPage() {
-  const { user, isLoaded } = useUser();
-  const [stats, setStats] = useState({
-    total: 0,
-    completed: 0,
-    pending: 0,
-  });
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const stats = await getAllTodosStatsForAdmin();
-        setStats(stats);
-      } catch (error) {
-        console.error("Failed to fetch stats:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (isLoaded && user) {
-      fetchStats();
-    }
-  }, [isLoaded, user]);
-
-  if (!isLoaded || loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div>Loading...</div>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-red-600 mb-4">
-            Authentication Required
-          </h1>
-          <p className="text-gray-600">
-            Please sign in to access the dashboard.
-          </p>
-          <Link
-            href="/sign-in"
-            className="mt-4 inline-block px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-          >
-            Sign In
-          </Link>
-        </div>
-      </div>
-    );
-  }
+export default async function AdminPage() {
+  const stats = await getTodoStats().catch(handlePageError);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -88,7 +47,6 @@ export default function AdminPage() {
             </p>
           </div>
         </div>
-
       </main>
     </div>
   );

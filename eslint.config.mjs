@@ -23,6 +23,68 @@ const eslintConfig = [
     // Playwright's use callback is a lifecycle boundary, not React.use.
     rules: { "react-hooks/rules-of-hooks": "off" },
   },
+  // Layer boundaries (ARCHITECTURE.md "Dependency rule"). `**/_x` and `**/_x/**` match both
+  // `@/app/_x/...` aliases and relative paths such as `../_x/...`.
+  {
+    files: ["app/_domain/**/*.{ts,tsx}"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["**/_application", "**/_application/**", "**/_infrastructure", "**/_infrastructure/**"],
+              message: "Domain depends on nothing: no Application or Infrastructure imports.",
+            },
+            {
+              group: ["react", "react-dom", "next", "next/**", "drizzle-orm", "drizzle-orm/**", "@clerk/**", "@opennextjs/**"],
+              message: "Domain holds pure types, schemas and rules: no framework or SDK imports.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: ["app/_application/**/*.{ts,tsx}"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["drizzle-orm", "drizzle-orm/**", "@clerk/**", "@opennextjs/**"],
+              message: "Application orchestrates Infrastructure; SDK access belongs in app/_infrastructure.",
+            },
+            {
+              group: ["react", "react-dom", "next", "next/**"],
+              message: "Application knows nothing about Next.js or React; revalidatePath/redirect belong in the UI layer.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: ["app/_infrastructure/**/*.{ts,tsx}"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["**/_application", "**/_application/**"],
+              message: "Infrastructure must not depend on Application.",
+            },
+            {
+              group: ["react-dom", "next", "next/**"],
+              message: "Infrastructure has no Next.js or React rendering concerns.",
+            },
+          ],
+        },
+      ],
+    },
+  },
   {
     files: ["**/*.{ts,tsx,js,jsx}"],
     plugins: { "@nx": nxPlugin },

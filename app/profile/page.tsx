@@ -1,7 +1,6 @@
 import { Suspense } from "react";
-import { auth } from "@clerk/nextjs/server";
-import { redirect } from "next/navigation";
-import { getProfile } from "@/app/actions/profile";
+import { getProfile } from "@/app/_application/profile";
+import { handlePageError } from "@/app/_lib/page-errors";
 import { ProfileForm } from "./components/ProfileForm";
 
 export const metadata = {
@@ -10,13 +9,7 @@ export const metadata = {
 };
 
 export default async function ProfilePage() {
-  const { userId } = await auth();
-
-  if (!userId) {
-    redirect("/sign-in");
-  }
-
-  const profile = await getProfile();
+  const profile = await getProfile().catch(handlePageError);
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-2xl">

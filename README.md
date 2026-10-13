@@ -153,7 +153,7 @@ Visit [http://localhost:3000](http://localhost:3000) to see your app!
 ### Database (D1)
 - `pnpm run db:create` - Create production database
 - `pnpm run db:create:preview` - Create preview database
-- `pnpm run db:generate` - Generate a migration from `lib/db/schema.ts`
+- `pnpm run db:generate` - Generate a migration from `app/_infrastructure/schema.ts`
 - `pnpm run db:migrate:local` - Run migrations locally
 - `pnpm run db:migrate:prod` - Run migrations on production
 - `pnpm run db:migrate:preview` - Run migrations on preview
@@ -423,21 +423,20 @@ Visit `/todos` after signing in to see it in action.
 If you want to start fresh without the Todo example:
 
 1. Delete `app/todos/` directory
-2. Delete `app/actions/todos.ts`
-3. Delete `lib/schemas/todo.ts`
-4. Update `lib/db/schema.ts` to remove the todos table
-5. Create new migration: `pnpm run db:generate`
-6. Update navigation in `app/components/navigation.tsx`
-7. Update the admin dashboard (`app/admin/page.tsx`), which shows Todo stats
-8. Remove or update Todo E2E specs, page objects and fixtures in `e2e/`
+2. Delete `app/actions/todos.ts`, `app/_application/todos.ts`, `app/_infrastructure/todos.ts` and `app/_domain/todo.ts`
+3. Update `app/_infrastructure/schema.ts` to remove the todos table
+4. Create new migration: `pnpm run db:generate`
+5. Update navigation in `app/components/navigation.tsx`
+6. Update the admin dashboard (`app/admin/page.tsx`), which shows Todo stats
+7. Remove or update Todo E2E specs, page objects and fixtures in `e2e/`
 
 ### Adding New Features
 
-1. Define database schema in `lib/db/schema.ts`
+1. Define database schema in `app/_infrastructure/schema.ts`
 2. Generate migration: `pnpm run db:generate`
-3. Create validation schema in `lib/schemas/`
-4. Implement Server Actions in `app/actions/`
-5. Build UI in `app/` using the example patterns
+3. Create validation schemas and DTO types in `app/_domain/`
+4. Add queries in `app/_infrastructure/` and use cases in `app/_application/` (see `ARCHITECTURE.md`)
+5. Build UI in `app/` using the example patterns; reads call Application from Server Components, mutations go through Server Actions
 
 ## Troubleshooting
 
