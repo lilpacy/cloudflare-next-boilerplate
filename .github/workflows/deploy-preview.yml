@@ -1,0 +1,75 @@
+name: Deploy preview
+
+on:
+  push:
+    branches: [master]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-preview
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22.16.0
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Configure preview
+        env:
+          WRANGLER_CONFIG: ${{ secrets.CLOUDFLARE_PREVIEW_WRANGLER_CONFIG }}
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const assert = require('node:assert/strict');
+          const config = JSON.parse(process.env.WRANGLER_CONFIG);
+          const mask = value => {
+            if (typeof value === 'string' && value) {
+              console.log(`::add-mask::${value.replace(/%/g, '%25').replace(/\r/g, '%0D').replace(/\n/g, '%0A')}`);
+            } else if (value && typeof value === 'object') {
+              Object.values(value).forEach(mask);
+            }
+          };
+          mask(config);
+          // CI builds explicitly before migrations; skip Wrangler's custom rebuild.
+          delete config.build;
+          const preview = config.env?.preview;
+          assert(preview?.name === 'my-app-preview' && preview.vars.ENV_NAME === 'preview');
+          assert(Array.isArray(preview.routes) && preview.routes.length === 0);
+          assert(preview.d1_databases.length === 1 && preview.d1_databases[0].database_name === 'my-app-db-preview');
+          assert(preview.d1_databases[0].database_id && !preview.d1_databases[0].database_id.includes('YOUR_'));
+          assert(!config.d1_databases.some(db => db.database_id === preview.d1_databases[0].database_id));
+          assert(preview.r2_buckets.length === 2 && preview.r2_buckets.every(bucket =>
+            ['my-app-storage-preview', 'my-app-cache-preview'].includes(bucket.bucket_name) &&
+            !config.r2_buckets.some(prod => prod.bucket_name === bucket.bucket_name)));
+          assert(new Set(preview.r2_buckets.map(bucket => bucket.bucket_name)).size === 2);
+          assert(preview.services.length === 1 && preview.services[0].binding === 'WORKER_SELF_REFERENCE' && preview.services[0].service === preview.name);
+          assert(preview.vars.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY.startsWith('pk_test_'));
+          const vars = Object.entries(preview.vars).map(([key, value]) => {
+            assert(/^[A-Z][A-Z0-9_]*$/.test(key) && typeof value === 'string' && !/[\r\n]/.test(value));
+            return `${key}=${value}\n`;
+          }).join('');
+          fs.writeFileSync('wrangler.jsonc', JSON.stringify(config));
+          fs.appendFileSync(process.env.GITHUB_ENV, vars);
+          NODE
+      - run: pnpm run lint
+      - name: Build preview Worker
+        run: pnpm exec opennextjs-cloudflare build --env preview
+      - name: Migrate preview database
+        run: pnpm run db:migrate:preview
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      - name: Deploy preview Worker
+        run: pnpm exec opennextjs-cloudflare deploy --env preview
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

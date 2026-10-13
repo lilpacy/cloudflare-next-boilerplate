@@ -28,7 +28,7 @@
     "test:e2e": "playwright test",
     "deploy": "pnpm run deploy:prod",
     "deploy:prod": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
-    "deploy:preview": "opennextjs-cloudflare build && opennextjs-cloudflare deploy --env preview",
+    "deploy:preview": "opennextjs-cloudflare build --env preview && opennextjs-cloudflare deploy --env preview",
     "preview:cf": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
     "cf:typegen": "wrangler types --env-interface CloudflareEnv ./cloudflare-env.d.ts",
     "db:create": "wrangler d1 create my-app-db",
