@@ -59,6 +59,8 @@
   // Environment-specific overrides
   "env": {
     "preview": {
+      "name": "my-app-preview",
+      "routes": [],
       "services": [
         {
           "binding": "WORKER_SELF_REFERENCE",
