@@ -19,6 +19,11 @@ const eslintConfig = [
   ...nextVitals,
   ...nextTypescript,
   {
+    files: ["e2e/fixtures/**/*.ts"],
+    // Playwright's use callback is a lifecycle boundary, not React.use.
+    rules: { "react-hooks/rules-of-hooks": "off" },
+  },
+  {
     files: ["**/*.{ts,tsx,js,jsx}"],
     plugins: { "@nx": nxPlugin },
     rules: {
