@@ -1,17 +1,17 @@
 # Repository Guidelines
 
 ## Project Structure & Module Organization
-- `app/` hosts the Next.js App Router; page-level logic lives in route folders (e.g., `app/blog`, `app/admin`) with shared UI in `app/components` and utilities in `app/actions`.
+- `app/` hosts the Next.js App Router; page-level logic lives in route folders (e.g., `app/todos`, `app/admin`) with shared UI in `app/components` and utilities in `app/actions`.
 - Shared presentation-only React components live in `packages/ui`; keep Clerk, database and storage logic in the app. `pnpm lint` enforces Nx project boundaries and cross-project cycle restrictions.
-- Domain helpers live under `lib/` (`lib/db` for Drizzle clients, `lib/schemas` for Zod contracts, `lib/utils` for shared helpers). Update these when adjusting data flows.
-- Database migrations sit in `drizzle/`; keep SQL files in sync with generated metadata. Static assets belong in `public/`, and deployment wiring is captured by `open-next.config.ts` and `wrangler.jsonc`.
+- Domain helpers live under `lib/` (`lib/db` for Drizzle clients, `lib/schemas` for Zod contracts, `lib/r2` for the R2 storage client). Update these when adjusting data flows.
+- Database migrations sit in `drizzle/`; keep SQL files in sync with generated metadata. Static assets belong in `public/`, and deployment wiring is captured by `open-next.config.ts`, `wrangler.jsonc` and `.github/workflows/deploy.yml` (production deploy on every `master` push).
 
 ## Build, Test, and Development Commands
 - `pnpm run dev` starts the local dev server with Turbopack.
-- `pnpm run build` creates a production bundle; follow with `pnpm run start` to simulate the Cloudflare runtime locally.
+- `pnpm run build` creates a production bundle; `pnpm run start` runs it on the Next.js Node server. Use `pnpm run preview:cf` to build and run it locally in the Cloudflare Workers runtime with D1/R2 bindings.
 - `pnpm run lint` runs the configured ESLint ruleset; fix warnings before opening a PR.
-- `pnpm run deploy` and `pnpm run preview` build and ship via OpenNext + Cloudflare. Use `pnpm run cf-typegen` after editing `cloudflare-env.d.ts`.
-- Database helpers: `pnpm run db:migrate:local` and `pnpm run db:migrate:prod` apply the current Drizzle migration; use the paired `db:shell:*` commands for ad-hoc queries.
+- `pnpm run deploy` (production) and `pnpm run deploy:preview` build and ship via OpenNext + Cloudflare. Run `pnpm run cf:typegen` after editing bindings or vars in `wrangler.jsonc`; it regenerates `cloudflare-env.d.ts`.
+- Database helpers: `pnpm run db:generate` creates a migration from `lib/db/schema.ts`; `pnpm run db:migrate:local`, `db:migrate:preview` and `db:migrate:prod` apply migrations; use the paired `db:shell:*` commands for ad-hoc queries.
 
 ## Coding Style & Naming Conventions
 - TypeScript is required; prefer explicit types on exported functions. Use 2-space indentation and keep imports sorted logically (React/Next, third-party, local).
@@ -19,15 +19,15 @@
 - Run ESLint before committing; add targeted `// eslint-disable-next-line` comments only when justified.
 
 ## Testing Guidelines
-- Vitest tests include sample rendering and the Nx dependency-boundary contract; use Japanese behavior names for new tests. Keep boundary checks covering aliases, relative imports and project cycles.
-- Always run `pnpm run lint` and `pnpm run build` before pushing. For database changes, exercise migrations locally via `db:migrate:local` and seed data through the D1 shell commands.
+- Vitest tests (`__tests__/`, `pnpm run test:run`) include sample rendering, the Nx dependency-boundary contract and the E2E resource fixture lifecycle; use Japanese behavior names for new tests. Keep boundary checks covering aliases, relative imports and project cycles.
+- Always run `pnpm run lint` and `pnpm run build` before pushing. For database changes, exercise migrations locally via `db:migrate:local` and seed data through the D1 shell commands. Playwright E2E tests live in `e2e/` (`pnpm run test:e2e`); see the README for Clerk test-instance requirements.
 
 ## Commit & Pull Request Guidelines
 - History shows short imperative commits (`fix: upload image`, `add rss feed...`). Follow `type: summary (context)` with optional issue reference `(vibe-kanban XXXXX)`.
-- Squash local work into logical commits. PRs should describe the change, list manual checks (lint/build/migrations), attach screenshots for UI updates, and link tracking tickets. Request review before merging to main.
+- Squash local work into logical commits. PRs should describe the change, list manual checks (lint/build/migrations), attach screenshots for UI updates, and link tracking tickets. Request review before merging to `master`.
 
 ## Security & Configuration Tips
-- Secrets live in Cloudflare env vars; never commit credentials. Update `cloudflare-env.d.ts` and regenerate types when adding keys, and verify `wrangler.jsonc` stays in sync with deployed bindings.
+- Secrets live in Cloudflare env vars; never commit credentials. Add non-secret keys to `wrangler.jsonc` `vars` and secrets via `wrangler secret put`, run `pnpm run cf:typegen` to regenerate `cloudflare-env.d.ts`, and verify `wrangler.jsonc` stays in sync with deployed bindings.
 
 <!-- BEGIN:nextjs-agent-rules -->
 

@@ -65,9 +65,10 @@ Copy the database IDs from the output and update `wrangler.jsonc`:
 
 ```bash
 # Create all required buckets
-pnpm run storage:create        # Main storage
-pnpm run storage:create:cache  # Next.js cache
-pnpm run storage:create:preview # Preview storage
+pnpm run storage:create               # Main storage
+pnpm run storage:create:cache         # Next.js cache
+pnpm run storage:create:preview       # Preview storage
+pnpm run storage:create:cache:preview # Preview Next.js cache
 ```
 
 ### 4. Update Configuration
@@ -77,6 +78,10 @@ Edit `wrangler.jsonc` and replace all placeholder values:
 - `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`: Your Clerk publishable key
 - `NEXT_PUBLIC_BASE_URL`: Your production domain (or localhost for dev)
 - `NEXT_PUBLIC_GOOGLE_ANALYTICS_ID`: (Optional) Your GA4 measurement ID
+- `ADMIN_EMAILS`: Comma-separated emails allowed to access `/admin`
+
+The `env.preview` section has its own D1 database ID and Clerk publishable key.
+Its `ADMIN_EMAILS` is set to the E2E admin test account.
 
 ### 5. Run Database Migrations
 
@@ -86,6 +91,9 @@ pnpm run db:migrate:local
 
 # For production (after first deploy)
 pnpm run db:migrate:prod
+
+# For the preview environment
+pnpm run db:migrate:preview
 ```
 
 ### 6. Start Development Server
@@ -102,15 +110,24 @@ Visit [http://localhost:3000](http://localhost:3000) to see your app!
 ├── app/                    # Next.js App Router
 │   ├── actions/           # Server Actions
 │   ├── admin/             # Admin dashboard
+│   ├── api/images/        # R2 image delivery route
+│   ├── profile/           # Profile page with image upload
+│   ├── sign-in/, sign-up/ # Clerk authentication pages
 │   ├── todos/             # Todo app example
 │   ├── components/        # React components
 │   └── styles/            # Global styles
+├── packages/ui/           # Shared presentation-only components (@cf-next/ui)
 ├── lib/                   # Shared utilities
 │   ├── db/               # Database schema and client
 │   ├── r2/               # R2 storage client
 │   └── schemas/          # Zod validation schemas
+├── __tests__/            # Vitest tests
+├── e2e/                  # Playwright specs, page objects and fixtures
+├── .github/workflows/     # Production deploy workflow
 ├── drizzle/              # Database migrations
 ├── public/               # Static assets
+├── middleware.ts         # Clerk auth and admin authorization
+├── open-next.config.ts   # OpenNext Cloudflare adapter config
 ├── wrangler.jsonc        # Cloudflare Workers config
 └── package.json          # Dependencies and scripts
 ```
@@ -123,22 +140,37 @@ Visit [http://localhost:3000](http://localhost:3000) to see your app!
 - `pnpm run start` - Start production server locally
 - `pnpm run lint` - Run ESLint
 - `pnpm run type-check` - Run TypeScript type checking
+- `pnpm run graph` - Open the Nx project graph
+- `pnpm run cf:typegen` - Regenerate `cloudflare-env.d.ts` from `wrangler.jsonc`
+
+### Testing
+- `pnpm run test` - Run Vitest in watch mode
+- `pnpm run test:run` - Run Vitest once
+- `pnpm run test:ui` - Open the Vitest UI
+- `pnpm run test:coverage` - Run Vitest with coverage
+- `pnpm run test:e2e` - Run Playwright E2E tests
 
 ### Database (D1)
 - `pnpm run db:create` - Create production database
 - `pnpm run db:create:preview` - Create preview database
+- `pnpm run db:generate` - Generate a migration from `lib/db/schema.ts`
 - `pnpm run db:migrate:local` - Run migrations locally
 - `pnpm run db:migrate:prod` - Run migrations on production
-- `pnpm run db:shell:local` - Open local database shell
-- `pnpm run db:shell:prod` - Open remote database shell
+- `pnpm run db:migrate:preview` - Run migrations on preview
+- `pnpm run db:shell:local "<SQL>"` - Execute SQL on the local database
+- `pnpm run db:shell:prod "<SQL>"` - Execute SQL on the production database
+- `pnpm run db:shell:preview "<SQL>"` - Execute SQL on the preview database
+- `pnpm run db:export:local` / `db:export:prod` / `db:export:preview` - Export a database to `database-*.sql`
 
 ### Storage (R2)
 - `pnpm run storage:create` - Create main R2 bucket
 - `pnpm run storage:create:cache` - Create cache bucket
 - `pnpm run storage:create:preview` - Create preview bucket
+- `pnpm run storage:create:cache:preview` - Create preview cache bucket
 
 ### Deployment
-- `pnpm run deploy` - Build and deploy to Cloudflare
+- `pnpm run deploy` - Build and deploy to production (alias of `deploy:prod`)
+- `pnpm run deploy:preview` - Build and deploy the `preview` environment
 - `pnpm run preview:cf` - Build and preview locally in the Cloudflare Workers runtime
 
 ### Next.js 16 compatibility
@@ -165,7 +197,8 @@ D1/R2 bindings in Workers; `pnpm run start` runs the Next.js Node server.
 ## Workspace UI and dependency boundaries
 
 The Next.js application stays at the repository root. `packages/ui` is the
-private `@cf-next/ui` React package; the homepage uses its `Card` component.
+private `@cf-next/ui` React package. The homepage uses its `Card`, and the Todo
+and profile forms use its `PrimaryButton`, `TextInput` and `Textarea`.
 The package exports TypeScript source, and Next.js processes it through
 `transpilePackages`. It has no independent build/watch process.
 
@@ -186,9 +219,9 @@ cycles within one project are not checked by this project-boundary rule
 Tailwind explicitly scans `packages/ui/src` through `@source` in the existing
 SCSS entry. Sass and the existing styling remain unchanged.
 
-Boundary enforcement runs in `pnpm lint` and the existing Husky pre-commit hook;
-this repository has no GitHub CI workflow. A future CI job should run
-`pnpm lint`, `pnpm type-check` and `pnpm test:run`. Plain `eslint`/IDE lint needs
+Boundary enforcement runs in `pnpm lint`, the existing Husky pre-commit hook and
+the production deploy workflow on `master` pushes. There is no PR CI workflow; a
+future PR job should run `pnpm lint`, `pnpm type-check` and `pnpm test:run`. Plain `eslint`/IDE lint needs
 an existing Nx graph; the rule can skip if that cache is missing, so use
 `pnpm lint` as the required gate. Nx Cloud is not configured.
 
@@ -302,9 +335,16 @@ When changing production bindings or variables, update `CLOUDFLARE_WRANGLER_CONF
 as well. This workflow does not create environments, run database migrations, or
 run E2E tests against production. See [Cloudflare's CI authentication guide](https://developers.cloudflare.com/workers/ci-cd/external-cicd/github-actions/).
 
+### Preview Environment
+
+```bash
+pnpm run deploy:preview
+pnpm run db:migrate:preview
+```
+
 ## Environment Variables
 
-See `.env.example` for all available environment variables. For production, configure these in `wrangler.jsonc` under the `vars` section.
+See `.env.example` for all available environment variables. For production, configure these under `vars` in `wrangler.jsonc` for manual deploys, or in the `CLOUDFLARE_WRANGLER_CONFIG` Actions secret for automatic deployment.
 
 ## Tech Stack
 
@@ -341,13 +381,15 @@ If you want to start fresh without the Todo example:
 2. Delete `app/actions/todos.ts`
 3. Delete `lib/schemas/todo.ts`
 4. Update `lib/db/schema.ts` to remove the todos table
-5. Create new migration: `npx drizzle-kit generate`
+5. Create new migration: `pnpm run db:generate`
 6. Update navigation in `app/components/navigation.tsx`
+7. Update the admin dashboard (`app/admin/page.tsx`), which shows Todo stats
+8. Remove or update Todo E2E specs, page objects and fixtures in `e2e/`
 
 ### Adding New Features
 
 1. Define database schema in `lib/db/schema.ts`
-2. Generate migration: `npx drizzle-kit generate`
+2. Generate migration: `pnpm run db:generate`
 3. Create validation schema in `lib/schemas/`
 4. Implement Server Actions in `app/actions/`
 5. Build UI in `app/` using the example patterns
