@@ -12,10 +12,13 @@
     "noEmit": true,
     "skipLibCheck": true,
     "types": [
-      "react"
+      "react",
+      "node"
     ]
   },
   "include": [
-    "src"
+    "src",
+    ".storybook",
+    "vitest.config.ts"
   ]
 }

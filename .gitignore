@@ -9,6 +9,11 @@ node_modules/
 # testing
 /coverage
 /.vitest/
+
+# storybook
+**/storybook-static/
+*storybook.log
+**/vitest.config.ts.timestamp*
 /test-results/
 /playwright-report/
 /e2e/.auth/
