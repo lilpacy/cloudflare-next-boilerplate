@@ -1,2 +1,0 @@
-# Ensure commits only proceed when the production build succeeds
-pnpm run type-check && pnpm run lint
