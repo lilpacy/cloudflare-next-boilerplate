@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ResourceFixture } from "../e2e/fixtures/ResourceFixture";
+import { ResourceFixture } from "../apps/web/e2e/fixtures/ResourceFixture";
 
 type Phase = "create" | "precheck" | "use";
 

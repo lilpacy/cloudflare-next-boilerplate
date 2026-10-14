@@ -11,7 +11,6 @@ setup("Clerk と D1 を初期化し、テストユーザーでサインインす
   }
   await clerkSetup();
 
-  // Wrangler reads apps/web/wrangler.jsonc, so run the root script that delegates into apps/web.
   const migrate = process.env.E2E_ENV === "preview" ? "db:migrate:preview" : "db:migrate:local";
 
   execSync(`pnpm run ${migrate}`, { stdio: "inherit" });

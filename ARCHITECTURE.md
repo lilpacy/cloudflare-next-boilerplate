@@ -117,6 +117,7 @@ Directories only; file lists go stale.
 | `apps/web/src/infrastructure/storage.ts` | Infrastructure | R2 bucket access |
 | `apps/web/src/infrastructure/<feature>.ts` | Infrastructure | Queries for one feature; returns Domain DTOs, never raw rows |
 | `<module>.test.ts` next to its module | same as the module | Unit tests for that module; the module's layer rules apply. Cross-cutting tests live in `__tests__/` |
+| `apps/web/e2e/`, `apps/web/playwright.config.ts` | (outside; no layer) | Playwright specs, page objects and fixtures for the `web` app. They drive the app over HTTP and reach D1/R2 through Wrangler, never by importing `apps/web/src/` |
 | `packages/database/src/modules/<name>/schema.ts` | (outside; imported by Infrastructure only) | Table definitions for one module. Register each module in `packages/database/src/schema.ts` |
 | `packages/database/src/db.ts` | (outside) | `createDb(d1)`: opens the database from a D1 binding without OpenNext, for any Worker |
 | `packages/database/migrations/` | (outside) | drizzle-kit output (`pnpm run db:generate`); `wrangler.jsonc` `migrations_dir` points here. `packages/database/test/migrations.test.ts` fails when schema and migrations drift |

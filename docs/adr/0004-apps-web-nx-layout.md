@@ -93,6 +93,12 @@ Negative / accepted trade-offs:
   forbidden); `type:app` may depend on both (`apps/*` → `packages/*` imports stay allowed). This was
   already true before the move and is unchanged by it.
 
+## Amendments
+
+| Plan item | Amendment | Reason |
+|---|---|---|
+| Context: `playwright.config.ts` and `e2e/` counted as workspace tooling at the root | Moved to `apps/web/playwright.config.ts` and `apps/web/e2e/`; root `test:e2e` delegates with `pnpm --filter web run test:e2e` | Every spec, page object and fixture targets the `web` app only. At the root the suite had to address `apps/web/wrangler.jsonc` and `apps/web/.wrangler/state` by path, and running Wrangler from the root already broke once (#23). With `apps/web` as the working directory, Wrangler, the local D1 state and `next dev` resolve without prefixes. A separate `apps/web-e2e` Nx project was not chosen: its working directory would still not be `apps/web`, and CI does not run E2E, so `nx affected` gains nothing yet |
+
 ## Verification
 
 At the time of the move: `pnpm install`, `pnpm run lint`, `pnpm run type-check`, `pnpm run test:run`

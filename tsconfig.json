@@ -16,14 +16,11 @@
     "incremental": true,
     "types": ["node"]
   },
-  "files": ["apps/web/cloudflare-env.d.ts"],
   "include": [
     "vitest.config.ts",
     "vitest.setup.ts",
-    "playwright.config.ts",
     "__tests__/**/*.ts",
-    "__tests__/**/*.tsx",
-    "e2e/**/*.ts"
+    "__tests__/**/*.tsx"
   ],
   "exclude": ["node_modules", "apps", "packages"]
 }

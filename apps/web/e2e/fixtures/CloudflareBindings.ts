@@ -10,7 +10,7 @@ export async function useCloudflareBindings(
 ): Promise<void> {
   const preview = process.env.E2E_ENV === "preview";
   const config = unstable_readConfig({
-    config: "apps/web/wrangler.jsonc",
+    config: "wrangler.jsonc",
     env: preview ? "preview" : undefined,
   }, { hideWarnings: true });
   const database = config.d1_databases.find(({ binding }: { binding: string }) => binding === "DB");
@@ -29,8 +29,8 @@ export async function useCloudflareBindings(
     }));
     const proxy = await getPlatformProxy<TestBindings>({
       configPath,
-      // Same local state directory as `next dev` / `wrangler` running inside apps/web.
-      persist: { path: resolve("apps/web/.wrangler/state/v3") },
+      // Same local state directory as `next dev` / `wrangler`.
+      persist: { path: resolve(".wrangler/state/v3") },
       remoteBindings: preview,
       envFiles: [],
     });

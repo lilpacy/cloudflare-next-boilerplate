@@ -124,6 +124,7 @@ Visit [http://localhost:3000](http://localhost:3000) to see your app!
 │       │   ├── infrastructure/    # D1/drizzle, R2, Clerk SDK access (server-only)
 │       │   └── middleware.ts      # UI layer: Clerk sign-in redirect (authorization lives in apps/web/src/application)
 │       ├── public/         # Static assets
+│       ├── e2e/            # Playwright specs, page objects and fixtures (playwright.config.ts sits next to it)
 │       ├── open-next.config.ts   # OpenNext Cloudflare adapter config
 │       ├── wrangler.jsonc        # Cloudflare Workers config
 │       └── package.json          # App dependencies and scripts
@@ -131,7 +132,6 @@ Visit [http://localhost:3000](http://localhost:3000) to see your app!
 │   ├── database/          # @cf-next/database: table definitions (src/modules/*), createDb(d1), migrations/
 │   └── ui/                # @cf-next/ui: shared presentation-only components
 ├── __tests__/            # Cross-cutting Vitest tests (unit tests sit next to their module as *.test.ts)
-├── e2e/                  # Playwright specs, page objects and fixtures
 ├── .github/workflows/     # PR CI and deploy workflows
 ├── nx.json, pnpm-workspace.yaml  # Workspace/Nx configuration
 └── package.json          # Workspace-level scripts (`nx dev web`, `nx build web`, lint, test)
@@ -272,7 +272,7 @@ E2E tests require a Clerk **test instance** (`CLERK_SECRET_KEY` starting with
 Each authenticated scenario creates a unique test user and deletes it afterward.
 The fixed admin account is retained for the read-only dashboard scenario.
 
-Page Objects live in `e2e/pages`: `HomePage`, `TodosPage`, `EditTodoPage`,
+Page Objects live in `apps/web/e2e/pages`: `HomePage`, `TodosPage`, `EditTodoPage`,
 `ProfilePage`, and `AdminPage` own their page's locators and interactions;
 `Navigation` owns the shared desktop/mobile menu. Specs keep scenario data,
 assertions, and fixture selection. Clerk sign-in/out stays in authentication
@@ -293,7 +293,7 @@ scenario uses its own user and at most one Todo, so its edit/toggle/delete
 actions require a single matching Todo. Run `pnpm run test:e2e --list` to check test discovery
 without starting the server or executing setup.
 
-Test resources live in `e2e/fixtures`. `ResourceFixture.run` executes
+Test resources live in `apps/web/e2e/fixtures`. `ResourceFixture.run` executes
 `create → precheck → use → cleanup` once per instance. Cleanup runs even when
 creation fails partway; simultaneous operation and cleanup errors are preserved
 as an `AggregateError`. Playwright fixtures create a new `UserResource` per
@@ -457,7 +457,7 @@ If you want to start fresh without the Todo example:
 4. Create new migration: `pnpm run db:generate`
 5. Update navigation in `apps/web/src/app/components/navigation.tsx`
 6. Update the admin dashboard (`apps/web/src/app/admin/page.tsx`), which shows Todo stats
-7. Remove or update Todo E2E specs, page objects and fixtures in `e2e/`
+7. Remove or update Todo E2E specs, page objects and fixtures in `apps/web/e2e/`
 
 ### Adding New Features
 
