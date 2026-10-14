@@ -98,6 +98,7 @@ Negative / accepted trade-offs:
 | Plan item | Amendment | Reason |
 |---|---|---|
 | Context: `playwright.config.ts` and `e2e/` counted as workspace tooling at the root | Moved to `apps/web/playwright.config.ts` and `apps/web/e2e/`; root `test:e2e` delegates with `pnpm --filter web run test:e2e` | Every spec, page object and fixture targets the `web` app only. At the root the suite had to address `apps/web/wrangler.jsonc` and `apps/web/.wrangler/state` by path, and running Wrangler from the root already broke once (#23). With `apps/web` as the working directory, Wrangler, the local D1 state and `next dev` resolve without prefixes. A separate `apps/web-e2e` Nx project was not chosen: its working directory would still not be `apps/web`, and CI does not run E2E, so `nx affected` gains nothing yet |
+| Not covered by the move: `.env.example` and the documented `.env.local` stayed at the root | Moved to `apps/web/.env.example`; README points to `apps/web/.env.local` | `next dev`/`next build` load env files from the project directory (`loadEnvConfig(dir)` in Next's `server/config.js`), which became `apps/web/`, so a root `.env.local` was no longer read. Playwright, now run from `apps/web`, reads the same files |
 
 ## Verification
 

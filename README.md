@@ -37,13 +37,13 @@ pnpm install
 1. Create a free account at [clerk.com](https://clerk.com)
 2. Create a new application
 3. Copy your publishable and secret keys
-4. Create a `.env.local` file:
+4. Create `apps/web/.env.local` (Next.js and Playwright load env files from `apps/web/`, not the repository root):
 
 ```bash
-cp .env.example .env.local
+cp apps/web/.env.example apps/web/.env.local
 ```
 
-5. Update `.env.local` with your Clerk keys
+5. Update `apps/web/.env.local` with your Clerk keys
 
 ### 3. Create Cloudflare Resources
 
@@ -197,9 +197,9 @@ Keep `apps/web/src/middleware.ts` for the Clerk sign-in redirect (authorization 
 the [OpenNext Cloudflare adapter](https://opennext.js.org/cloudflare). Revisit
 this when the adapter supports Node.js middleware/proxy.
 
-Builds require a valid `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` in `.env.local` or
-the build environment. Set `CLERK_SECRET_KEY` in `.dev.vars` for local Workers
-preview and in `.env.local` for `next dev`. Use `pnpm run preview:cf` to verify
+Builds require a valid `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` in `apps/web/.env.local` or
+the build environment. Set `CLERK_SECRET_KEY` in `apps/web/.dev.vars` for local Workers
+preview and in `apps/web/.env.local` for `next dev`. Use `pnpm run preview:cf` to verify
 D1/R2 bindings in Workers; `pnpm run start` runs the Next.js Node server.
 
 ## Workspace packages and dependency boundaries
@@ -268,7 +268,7 @@ E2E_ENV=preview E2E_PREVIEW_URL=https://my-app-preview.<account>.workers.dev pnp
 ```
 
 E2E tests require a Clerk **test instance** (`CLERK_SECRET_KEY` starting with
-`sk_test_` and `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`) in `.env` or `.env.local`.
+`sk_test_` and `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`) in `apps/web/.env` or `apps/web/.env.local`.
 Each authenticated scenario creates a unique test user and deletes it afterward.
 The fixed admin account is retained for the read-only dashboard scenario.
 
@@ -406,7 +406,7 @@ resources or run E2E tests. See [Cloudflare's CI authentication guide](https://d
 ### Preview Environment
 
 For manual preview deployment, set the preview `NEXT_PUBLIC_*` build variables
-in the shell or `.env.local`, especially the Clerk test-instance publishable key
+in the shell or `apps/web/.env.local`, especially the Clerk test-instance publishable key
 and preview base URL. `--env preview` selects Wrangler bindings; it does not load
 `env.preview.vars` into Next.js build-time variables. CI exports these variables
 automatically, while the manual command requires this setup.
@@ -418,7 +418,7 @@ pnpm run deploy:preview
 
 ## Environment Variables
 
-See `.env.example` for all available environment variables. For manual production deploys, configure these under `vars` in `apps/web/wrangler.jsonc`. For automatic preview deployment, configure `env.preview.vars` in the `CLOUDFLARE_PREVIEW_WRANGLER_CONFIG` Actions secret.
+See `apps/web/.env.example` for all available environment variables. For manual production deploys, configure these under `vars` in `apps/web/wrangler.jsonc`. For automatic preview deployment, configure `env.preview.vars` in the `CLOUDFLARE_PREVIEW_WRANGLER_CONFIG` Actions secret.
 
 ## Tech Stack
 
@@ -474,7 +474,7 @@ If you want to start fresh without the Todo example:
 - **"Database binding not found"**: Check `apps/web/wrangler.jsonc` configuration
 
 ### Authentication Issues
-- **"Clerk not configured"**: Verify `.env.local` has correct keys
+- **"Clerk not configured"**: Verify `apps/web/.env.local` has correct keys
 - **"Unauthorized"**: Ensure you're signed in and have proper permissions
 
 ### Deployment Issues
