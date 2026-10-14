@@ -291,7 +291,7 @@ R2 keys under `profiles/<userId>/`, including uploads without a profile DB row.
 Cleanup attempts D1, R2, and Clerk independently and reports failures.
 Global setup no longer deletes all rows in `todos` or `users`.
 
-Local fixtures use the worktree's `.wrangler/state/v3`. Preview fixtures select
+Local fixtures use the worktree's `apps/web/.wrangler/state/v3` (the same local state `next dev` writes to). Preview fixtures select
 only the preview DB/R2 bindings through Wrangler's remote binding proxy, so
 preview execution also requires Wrangler/Cloudflare authentication. The proxy
 uses a temporary binding-only config; app variables, secrets, and the committed

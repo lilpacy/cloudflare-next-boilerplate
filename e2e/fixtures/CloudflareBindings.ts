@@ -29,7 +29,8 @@ export async function useCloudflareBindings(
     }));
     const proxy = await getPlatformProxy<TestBindings>({
       configPath,
-      persist: { path: resolve(".wrangler/state/v3") },
+      // Same local state directory as `next dev` / `wrangler` running inside apps/web.
+      persist: { path: resolve("apps/web/.wrangler/state/v3") },
       remoteBindings: preview,
       envFiles: [],
     });
