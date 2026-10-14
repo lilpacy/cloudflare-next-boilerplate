@@ -1,0 +1,63 @@
+{
+  "name": "web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --turbopack",
+    "build": "next build",
+    "start": "next start",
+    "type-check": "tsc --noEmit",
+    "deploy": "pnpm run deploy:prod",
+    "deploy:prod": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+    "deploy:preview": "opennextjs-cloudflare build --env preview && opennextjs-cloudflare deploy --env preview",
+    "preview:cf": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
+    "cf:typegen": "wrangler types --env-interface CloudflareEnv ./cloudflare-env.d.ts",
+    "db:create": "wrangler d1 create my-app-db",
+    "db:create:preview": "wrangler d1 create my-app-db-preview",
+    "db:migrate:local": "wrangler d1 migrations apply my-app-db --local",
+    "db:migrate:prod": "wrangler d1 migrations apply my-app-db --remote",
+    "db:migrate:preview": "wrangler d1 migrations apply my-app-db-preview --remote --env preview",
+    "db:shell:local": "wrangler d1 execute my-app-db --local --command",
+    "db:shell:prod": "wrangler d1 execute my-app-db --remote --command",
+    "db:shell:preview": "wrangler d1 execute my-app-db-preview --remote --env preview --command",
+    "db:export:local": "wrangler d1 export my-app-db --local --output=./database-local.sql",
+    "db:export:prod": "wrangler d1 export my-app-db --remote --output=./database-prod.sql",
+    "db:export:preview": "wrangler d1 export my-app-db-preview --remote --env preview --output=./database-preview.sql",
+    "storage:create": "wrangler r2 bucket create my-app-storage",
+    "storage:create:cache": "wrangler r2 bucket create my-app-cache",
+    "storage:create:preview": "wrangler r2 bucket create my-app-storage-preview",
+    "storage:create:cache:preview": "wrangler r2 bucket create my-app-cache-preview"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.899.0",
+    "@cf-next/database": "workspace:*",
+    "@cf-next/ui": "workspace:*",
+    "@clerk/nextjs": "^6.39.7",
+    "@opennextjs/cloudflare": "^1.20.10",
+    "date-fns": "^4.1.0",
+    "drizzle-orm": "^0.45.4",
+    "next": "~16.3.8",
+    "react": "19.1.9",
+    "react-dom": "19.1.9",
+    "server-only": "0.0.1",
+    "zod": "^4.1.11"
+  },
+  "devDependencies": {
+    "@clerk/testing": "^2.1.0",
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/node": "^20.19.18",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "sass": "^1.100.0",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^5",
+    "wrangler": "^4.148.0"
+  },
+  "nx": {
+    "name": "web",
+    "tags": [
+      "type:app"
+    ],
+    "projectType": "application"
+  }
+}

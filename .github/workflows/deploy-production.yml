@@ -43,7 +43,7 @@ jobs:
           delete config.build;
           // Migrations live in the repository, not in the secret: point every D1 binding at them.
           for (const db of [...config.d1_databases, ...(config.env?.preview?.d1_databases ?? [])]) {
-            db.migrations_dir = 'packages/database/migrations';
+            db.migrations_dir = '../../packages/database/migrations';
           }
           assert(config.name === 'my-app' && config.vars.ENV_NAME === 'production');
           assert(config.d1_databases.length === 1 && config.d1_databases[0].database_name === 'my-app-db');
@@ -56,11 +56,12 @@ jobs:
             assert(/^[A-Z][A-Z0-9_]*$/.test(key) && typeof value === 'string' && !/[\r\n]/.test(value));
             return `${key}=${value}\n`;
           }).join('');
-          fs.writeFileSync('wrangler.jsonc', JSON.stringify(config));
+          fs.writeFileSync('apps/web/wrangler.jsonc', JSON.stringify(config));
           fs.appendFileSync(process.env.GITHUB_ENV, vars);
           NODE
       - run: pnpm run lint
       - name: Build production Worker
+        working-directory: apps/web
         run: pnpm exec opennextjs-cloudflare build
       - name: Migrate production database
         run: pnpm run db:migrate:prod
@@ -68,6 +69,7 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       - name: Deploy production Worker
+        working-directory: apps/web
         run: pnpm exec opennextjs-cloudflare deploy
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}

@@ -57,7 +57,7 @@ pnpm run db:create
 pnpm run db:create:preview
 ```
 
-Copy the database IDs from the output and update `wrangler.jsonc`:
+Copy the database IDs from the output and update `apps/web/wrangler.jsonc`:
 - Replace `YOUR_D1_DATABASE_ID_HERE` with production database ID
 - Replace `YOUR_PREVIEW_D1_DATABASE_ID_HERE` with preview database ID
 
@@ -73,7 +73,7 @@ pnpm run storage:create:cache:preview # Preview Next.js cache
 
 ### 4. Update Configuration
 
-Edit `wrangler.jsonc` and replace all placeholder values:
+Edit `apps/web/wrangler.jsonc` and replace all placeholder values:
 - `database_id`: Your D1 database IDs
 - `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`: Your Clerk publishable key
 - `NEXT_PUBLIC_BASE_URL`: Your production domain (or localhost for dev)
@@ -107,30 +107,34 @@ Visit [http://localhost:3000](http://localhost:3000) to see your app!
 ## Project Structure
 
 ```
-├── src/                    # Application code, one directory per layer (see ARCHITECTURE.md)
-│   ├── app/               # UI layer: Next.js App Router
-│   │   ├── admin/         # Admin dashboard
-│   │   ├── api/images/    # R2 image delivery route
-│   │   ├── profile/       # Profile page with image upload
-│   │   ├── sign-in/, sign-up/ # Clerk authentication pages
-│   │   ├── todos/         # Todo app example (page, actions.ts, components/)
-│   │   ├── components/    # React components shared across routes
-│   │   ├── styles/        # Global styles
-│   │   └── _lib/          # UI-side helpers (page error mapping, ActionResult)
-│   ├── application/       # Use cases: authn/authz, orchestration (server-only)
-│   ├── domain/            # DTO types, zod schemas, constants, error classes
-│   ├── infrastructure/    # D1/drizzle, R2, Clerk SDK access (server-only)
-│   └── middleware.ts      # UI layer: Clerk sign-in redirect (authorization lives in src/application)
+├── apps/
+│   └── web/                # Next.js app (Nx project "web")
+│       ├── src/            # Application code, one directory per layer (see ARCHITECTURE.md)
+│       │   ├── app/        # UI layer: Next.js App Router
+│       │   │   ├── admin/         # Admin dashboard
+│       │   │   ├── api/images/    # R2 image delivery route
+│       │   │   ├── profile/       # Profile page with image upload
+│       │   │   ├── sign-in/, sign-up/ # Clerk authentication pages
+│       │   │   ├── todos/         # Todo app example (page, actions.ts, components/)
+│       │   │   ├── components/    # React components shared across routes
+│       │   │   ├── styles/        # Global styles
+│       │   │   └── _lib/          # UI-side helpers (page error mapping, ActionResult)
+│       │   ├── application/       # Use cases: authn/authz, orchestration (server-only)
+│       │   ├── domain/            # DTO types, zod schemas, constants, error classes
+│       │   ├── infrastructure/    # D1/drizzle, R2, Clerk SDK access (server-only)
+│       │   └── middleware.ts      # UI layer: Clerk sign-in redirect (authorization lives in apps/web/src/application)
+│       ├── public/         # Static assets
+│       ├── open-next.config.ts   # OpenNext Cloudflare adapter config
+│       ├── wrangler.jsonc        # Cloudflare Workers config
+│       └── package.json          # App dependencies and scripts
 ├── packages/
 │   ├── database/          # @cf-next/database: table definitions (src/modules/*), createDb(d1), migrations/
 │   └── ui/                # @cf-next/ui: shared presentation-only components
 ├── __tests__/            # Cross-cutting Vitest tests (unit tests sit next to their module as *.test.ts)
 ├── e2e/                  # Playwright specs, page objects and fixtures
-├── .github/workflows/     # Production deploy workflow
-├── public/               # Static assets
-├── open-next.config.ts   # OpenNext Cloudflare adapter config
-├── wrangler.jsonc        # Cloudflare Workers config
-└── package.json          # Dependencies and scripts
+├── .github/workflows/     # Deploy workflows
+├── nx.json, pnpm-workspace.yaml  # Workspace/Nx configuration
+└── package.json          # Workspace-level scripts (`nx dev web`, `nx build web`, lint, test)
 ```
 
 ## Available Scripts
@@ -142,7 +146,7 @@ Visit [http://localhost:3000](http://localhost:3000) to see your app!
 - `pnpm run lint` - Run ESLint
 - `pnpm run type-check` - Run TypeScript type checking (app, `@cf-next/ui`, `@cf-next/database`)
 - `pnpm run graph` - Open the Nx project graph
-- `pnpm run cf:typegen` - Regenerate `cloudflare-env.d.ts` from `wrangler.jsonc`
+- `pnpm run cf:typegen` - Regenerate `cloudflare-env.d.ts` from `apps/web/wrangler.jsonc`
 
 ### Testing
 - `pnpm run test` - Run Vitest in watch mode
@@ -185,8 +189,8 @@ checks pass.
 Next.js 16 uses Turbopack for development and production builds. ESLint runs
 separately via `pnpm run lint`; `next build` no longer runs it.
 
-Keep `src/middleware.ts` for the Clerk sign-in redirect (authorization lives in
-`src/application`, see `ARCHITECTURE.md`): it uses the Edge runtime. The Node.js runtime used by `proxy.ts` is not supported by
+Keep `apps/web/src/middleware.ts` for the Clerk sign-in redirect (authorization lives in
+`apps/web/src/application`, see `ARCHITECTURE.md`): it uses the Edge runtime. The Node.js runtime used by `proxy.ts` is not supported by
 the [OpenNext Cloudflare adapter](https://opennext.js.org/cloudflare). Revisit
 this when the adapter supports Node.js middleware/proxy.
 
@@ -197,7 +201,7 @@ D1/R2 bindings in Workers; `pnpm run start` runs the Next.js Node server.
 
 ## Workspace packages and dependency boundaries
 
-The Next.js application stays at the repository root. Two private workspace
+The Next.js application lives in `apps/web` (Nx project `web`). Two private workspace
 packages sit in `packages/`; both export TypeScript source, and Next.js processes
 them through `transpilePackages`. Neither has an independent build/watch process.
 
@@ -205,10 +209,10 @@ them through `transpilePackages`. Neither has an independent build/watch process
   uses its `Card`, and the Todo and profile forms use its `PrimaryButton`,
   `TextInput` and `Textarea`.
 - `@cf-next/database` (`packages/database`): drizzle table definitions
-  (`src/modules/<name>/schema.ts`, registered in `src/schema.ts`), `createDb(d1)`
+  (`packages/database/src/modules/<name>/schema.ts`, registered in `packages/database/src/schema.ts`), `createDb(d1)`
   and the `migrations/` directory that `wrangler d1 migrations apply` reads. It
   depends on `drizzle-orm` only, so a cron Worker or a script can open the same
-  D1 with `createDb(env.DB)` without Next.js. Only `src/infrastructure/` may
+  D1 with `createDb(env.DB)` without Next.js. Only `apps/web/src/infrastructure/` may
   import it. `packages/database/test/migrations.test.ts` applies the migrations
   to an in-memory SQLite and fails when they drift from the schema.
 
@@ -303,7 +307,7 @@ Wrangler config are not copied or modified.
 ### First-Time Deployment
 
 1. Ensure all Cloudflare resources are created (D1, R2)
-2. Update `wrangler.jsonc` with actual IDs and values
+2. Update `apps/web/wrangler.jsonc` with actual IDs and values
 3. Set the Clerk secret key as a Worker secret (required for authentication in deployed environments):
 
 ```bash
@@ -400,7 +404,7 @@ pnpm run deploy:preview
 
 ## Environment Variables
 
-See `.env.example` for all available environment variables. For manual production deploys, configure these under `vars` in `wrangler.jsonc`. For automatic preview deployment, configure `env.preview.vars` in the `CLOUDFLARE_PREVIEW_WRANGLER_CONFIG` Actions secret.
+See `.env.example` for all available environment variables. For manual production deploys, configure these under `vars` in `apps/web/wrangler.jsonc`. For automatic preview deployment, configure `env.preview.vars` in the `CLOUDFLARE_PREVIEW_WRANGLER_CONFIG` Actions secret.
 
 ## Tech Stack
 
@@ -433,27 +437,27 @@ Visit `/todos` after signing in to see it in action.
 
 If you want to start fresh without the Todo example:
 
-1. Delete `src/app/todos/` directory
-2. Delete `src/application/todos.ts`, `src/infrastructure/todos.ts` and `src/domain/todo.ts`
+1. Delete `apps/web/src/app/todos/` directory
+2. Delete `apps/web/src/application/todos.ts`, `apps/web/src/infrastructure/todos.ts` and `apps/web/src/domain/todo.ts`
 3. Delete `packages/database/src/modules/todos/` and its line in `packages/database/src/schema.ts`
 4. Create new migration: `pnpm run db:generate`
-5. Update navigation in `src/app/components/navigation.tsx`
-6. Update the admin dashboard (`src/app/admin/page.tsx`), which shows Todo stats
+5. Update navigation in `apps/web/src/app/components/navigation.tsx`
+6. Update the admin dashboard (`apps/web/src/app/admin/page.tsx`), which shows Todo stats
 7. Remove or update Todo E2E specs, page objects and fixtures in `e2e/`
 
 ### Adding New Features
 
 1. Define tables in `packages/database/src/modules/<name>/schema.ts` and register the module in `packages/database/src/schema.ts`
 2. Generate migration: `pnpm run db:generate`
-3. Create validation schemas and DTO types in `src/domain/`
-4. Add queries in `src/infrastructure/` and use cases in `src/application/` (see `ARCHITECTURE.md`)
-5. Build UI in `src/app/` using the example patterns; reads call Application from Server Components, mutations go through Server Actions
+3. Create validation schemas and DTO types in `apps/web/src/domain/`
+4. Add queries in `apps/web/src/infrastructure/` and use cases in `apps/web/src/application/` (see `ARCHITECTURE.md`)
+5. Build UI in `apps/web/src/app/` using the example patterns; reads call Application from Server Components, mutations go through Server Actions
 
 ## Troubleshooting
 
 ### Database Issues
 - **"Table not found"**: Run `pnpm run db:migrate:local` or `pnpm run db:migrate:prod`
-- **"Database binding not found"**: Check `wrangler.jsonc` configuration
+- **"Database binding not found"**: Check `apps/web/wrangler.jsonc` configuration
 
 ### Authentication Issues
 - **"Clerk not configured"**: Verify `.env.local` has correct keys
@@ -461,7 +465,7 @@ If you want to start fresh without the Todo example:
 
 ### Deployment Issues
 - **Build fails**: Run `pnpm run type-check` to find TypeScript errors
-- **Workers error**: Verify all IDs in `wrangler.jsonc` are correct
+- **Workers error**: Verify all IDs in `apps/web/wrangler.jsonc` are correct
 - **Database migrations**: Ensure you ran `pnpm run db:migrate:prod` after deployment
 
 ## Resources

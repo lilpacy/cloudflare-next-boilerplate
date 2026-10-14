@@ -10,7 +10,7 @@ export async function useCloudflareBindings(
 ): Promise<void> {
   const preview = process.env.E2E_ENV === "preview";
   const config = unstable_readConfig({
-    config: "wrangler.jsonc",
+    config: "apps/web/wrangler.jsonc",
     env: preview ? "preview" : undefined,
   }, { hideWarnings: true });
   const database = config.d1_databases.find(({ binding }: { binding: string }) => binding === "DB");

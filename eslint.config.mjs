@@ -26,7 +26,7 @@ const eslintConfig = [
   // Layer boundaries (ARCHITECTURE.md "Dependency rule"). `**/x` and `**/x/**` match both
   // `@/x/...` aliases and relative paths such as `../x/...`.
   {
-    files: ["src/domain/**/*.{ts,tsx}"],
+    files: ["apps/web/src/domain/**/*.{ts,tsx}"],
     rules: {
       "no-restricted-imports": [
         "error",
@@ -46,7 +46,7 @@ const eslintConfig = [
     },
   },
   {
-    files: ["src/application/**/*.{ts,tsx}"],
+    files: ["apps/web/src/application/**/*.{ts,tsx}"],
     rules: {
       "no-restricted-imports": [
         "error",
@@ -54,7 +54,7 @@ const eslintConfig = [
           patterns: [
             {
               group: ["drizzle-orm", "drizzle-orm/**", "@cf-next/database", "@clerk/**", "@opennextjs/**"],
-              message: "Application orchestrates Infrastructure; SDK and database access belong in src/infrastructure.",
+              message: "Application orchestrates Infrastructure; SDK and database access belong in apps/web/src/infrastructure.",
             },
             {
               group: ["react", "react-dom", "next", "next/**"],
@@ -66,7 +66,7 @@ const eslintConfig = [
     },
   },
   {
-    files: ["src/infrastructure/**/*.{ts,tsx}"],
+    files: ["apps/web/src/infrastructure/**/*.{ts,tsx}"],
     rules: {
       "no-restricted-imports": [
         "error",
@@ -86,8 +86,8 @@ const eslintConfig = [
     },
   },
   {
-    // src/middleware.ts is UI too, but stays out: it imports @clerk/nextjs/server for clerkMiddleware.
-    files: ["src/app/**/*.{ts,tsx}"],
+    // apps/web/src/middleware.ts is UI too, but stays out: it imports @clerk/nextjs/server for clerkMiddleware.
+    files: ["apps/web/src/app/**/*.{ts,tsx}"],
     rules: {
       "no-restricted-imports": [
         "error",
@@ -95,11 +95,11 @@ const eslintConfig = [
           patterns: [
             {
               group: ["**/infrastructure", "**/infrastructure/**"],
-              message: "UI reaches data only through src/application use cases.",
+              message: "UI reaches data only through apps/web/src/application use cases.",
             },
             {
               group: ["drizzle-orm", "drizzle-orm/**", "@cf-next/database", "@clerk/nextjs/server", "@opennextjs/**"],
-              message: "SDK and database access belong in src/infrastructure; UI calls src/application.",
+              message: "SDK and database access belong in apps/web/src/infrastructure; UI calls apps/web/src/application.",
             },
           ],
         },
