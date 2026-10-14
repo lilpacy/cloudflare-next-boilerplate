@@ -8,6 +8,7 @@ node_modules/
 
 # testing
 /coverage
+/.vitest/
 /test-results/
 /playwright-report/
 /e2e/.auth/
