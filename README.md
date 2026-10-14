@@ -360,7 +360,9 @@ pnpm run deploy
 
 Open **Actions → Deploy production → Run workflow**, select **master**, then run
 it. `.github/workflows/deploy-production.yml` accepts only manual dispatches on
-`master`; other branches skip the deploy job. It runs lint, builds the OpenNext
+`master`; other branches skip the deploy job. It first requires the `checks` and
+`e2e` jobs of the `CI` workflow to have succeeded on the `master` commit being
+deployed, so wait for CI on `master` to finish before dispatching. It runs lint, builds the OpenNext
 Worker, applies pending production D1 migrations, then deploys to `my-app`.
 A build or migration failure stops deployment. Production runs are serialized
 without cancelling a running deployment. Pushing or merging to `master` still
