@@ -14,9 +14,9 @@ node_modules/
 **/storybook-static/
 *storybook.log
 **/vitest.config.ts.timestamp*
-/test-results/
-/playwright-report/
-/e2e/.auth/
+/apps/web/test-results/
+/apps/web/playwright-report/
+/apps/web/e2e/.auth/
 
 # next.js
 **/.next/

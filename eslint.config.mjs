@@ -22,7 +22,7 @@ const eslintConfig = [
   ...nextTypescript,
   ...storybook.configs["flat/recommended"],
   {
-    files: ["e2e/fixtures/**/*.ts"],
+    files: ["apps/web/e2e/fixtures/**/*.ts"],
     // Playwright's use callback is a lifecycle boundary, not React.use.
     rules: { "react-hooks/rules-of-hooks": "off" },
   },

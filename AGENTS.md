@@ -20,7 +20,7 @@
 ## Testing Guidelines
 - Vitest tests (`pnpm run test:run`) for a single module sit next to it as `<module>.test.ts` (e.g. `apps/web/src/application/todos.test.ts`, `apps/web/src/app/api/images/[...key]/route.test.ts`), so the per-layer lint rules apply to them too. `__tests__/` keeps only cross-cutting tests (sample rendering, the Nx dependency-boundary contract, the E2E resource fixture lifecycle) and `stubs/`. Use Japanese behavior names for new tests. Keep boundary checks covering aliases, relative imports, project cycles and the per-layer rules under `apps/web/src/`.
 - Every component exported from `packages/ui/src/index.ts` needs a sibling `<Name>.stories.tsx`; `packages/ui/src/stories-coverage.test.ts` fails when one is missing, and `storybook:test` only exercises components that have stories.
-- Always run `pnpm run lint` and `pnpm run build` before pushing. For database changes, exercise migrations locally via `db:migrate:local` and seed data through the D1 shell commands. Playwright E2E tests live in `e2e/` (`pnpm run test:e2e`); see the README for Clerk test-instance requirements.
+- Always run `pnpm run lint` and `pnpm run build` before pushing. For database changes, exercise migrations locally via `db:migrate:local` and seed data through the D1 shell commands. Playwright E2E tests live in `apps/web/e2e/` with `apps/web/playwright.config.ts` and run with `apps/web` as the working directory (`pnpm run test:e2e`); see the README for Clerk test-instance requirements.
 
 ## Commit & Pull Request Guidelines
 - History shows short imperative commits (`fix: upload image`, `add rss feed...`). Follow `type: summary (context)` with optional issue reference `(vibe-kanban XXXXX)`.

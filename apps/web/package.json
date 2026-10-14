@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "type-check": "tsc --noEmit",
+    "test:e2e": "playwright test",
     "deploy": "pnpm run deploy:prod",
     "deploy:prod": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
     "deploy:preview": "opennextjs-cloudflare build --env preview && opennextjs-cloudflare deploy --env preview",
@@ -44,6 +45,7 @@
   },
   "devDependencies": {
     "@clerk/testing": "^2.1.0",
+    "@playwright/test": "^1.60.0",
     "@tailwindcss/postcss": "^4.3.3",
     "@types/node": "^22.20.5",
     "@types/react": "^19",
