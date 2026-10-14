@@ -11,14 +11,10 @@ setup("Clerk と D1 を初期化し、テストユーザーでサインインす
   }
   await clerkSetup();
 
-  const d1Target =
-    process.env.E2E_ENV === "preview"
-      ? "my-app-db-preview --remote --env preview"
-      : "my-app-db --local";
+  // Wrangler reads apps/web/wrangler.jsonc, so run the root script that delegates into apps/web.
+  const migrate = process.env.E2E_ENV === "preview" ? "db:migrate:preview" : "db:migrate:local";
 
-  execSync(`pnpm exec wrangler d1 migrations apply ${d1Target}`, {
-    stdio: "inherit",
-  });
+  execSync(`pnpm run ${migrate}`, { stdio: "inherit" });
   await ensureClerkUser(E2E_ADMIN_EMAIL);
 
   await saveSignedInState(browser, E2E_ADMIN_EMAIL, ADMIN_STORAGE_STATE);
