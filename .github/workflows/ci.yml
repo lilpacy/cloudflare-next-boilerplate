@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      # `next build` only needs a well-formed publishable key to prerender; the
+      # output is never deployed, so a placeholder avoids wiring a repository
+      # variable. Deploy workflows pass the real key from the Wrangler config.
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: pk_test_Y2xlcmsuZXhhbXBsZS5jb20k
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22.16.0
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run lint
+      - run: pnpm run type-check
+      - run: pnpm run test:run
+      # Nx hides task logs in non-TTY output unless the output style is static,
+      # so call nx directly instead of `pnpm run build -- ...`, which would
+      # forward the flag to `next build`.
+      - run: pnpm exec nx build web --output-style=static

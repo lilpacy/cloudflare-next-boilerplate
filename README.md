@@ -132,7 +132,7 @@ Visit [http://localhost:3000](http://localhost:3000) to see your app!
 │   └── ui/                # @cf-next/ui: shared presentation-only components
 ├── __tests__/            # Cross-cutting Vitest tests (unit tests sit next to their module as *.test.ts)
 ├── e2e/                  # Playwright specs, page objects and fixtures
-├── .github/workflows/     # Deploy workflows
+├── .github/workflows/     # PR CI and deploy workflows
 ├── nx.json, pnpm-workspace.yaml  # Workspace/Nx configuration
 └── package.json          # Workspace-level scripts (`nx dev web`, `nx build web`, lint, test)
 ```
@@ -234,11 +234,15 @@ cycles within one project are not checked by this project-boundary rule
 Tailwind explicitly scans `packages/ui/src` through `@source` in the existing
 SCSS entry. Sass and the existing styling remain unchanged.
 
-Boundary enforcement runs in `pnpm lint`, the existing Husky pre-commit hook and
-the preview deploy workflow on `master` pushes. There is no PR CI workflow; a
-future PR job should run `pnpm lint`, `pnpm type-check` and `pnpm test:run`. Plain `eslint`/IDE lint needs
+Boundary enforcement runs in `pnpm lint`, the existing Husky pre-commit hook,
+the `CI` workflow (`.github/workflows/ci.yml`, on every pull request and
+`master` push: `pnpm lint`, `pnpm type-check`, `pnpm test:run`, then
+`nx build web` with a placeholder Clerk publishable key) and the preview deploy
+workflow on `master` pushes. Plain `eslint`/IDE lint needs
 an existing Nx graph; the rule can skip if that cache is missing, so use
-`pnpm lint` as the required gate. Nx Cloud is not configured.
+`pnpm lint` as the required gate. `type-check` results are cached by Nx
+(`nx.json` `targetDefaults`); the cache key covers each project, its workspace
+dependencies and `tsconfig.base.json`. Nx Cloud is not configured.
 
 ## E2E Testing
 
