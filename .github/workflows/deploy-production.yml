@@ -5,6 +5,7 @@ on:
 
 permissions:
   contents: read
+  checks: read
 
 concurrency:
   group: deploy-production
@@ -16,6 +17,20 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
+      # Deploy only commits whose required CI checks passed on master. A fork PR
+      # merges with e2e skipped, so the master push is where its e2e runs.
+      - name: Require passing CI checks
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for name in checks e2e; do
+            conclusion=$(gh api "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/check-runs?check_name=$name" \
+              --jq '[.check_runs[] | select(.app.slug == "github-actions")][0].conclusion')
+            if [ "$conclusion" != "success" ]; then
+              echo "::error::CI check '$name' on $GITHUB_SHA is '${conclusion:-missing or in progress}', not success. Wait for CI on master to pass, then rerun."
+              exit 1
+            fi
+          done
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
       - uses: actions/setup-node@v7

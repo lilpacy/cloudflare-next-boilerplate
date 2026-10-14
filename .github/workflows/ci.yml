@@ -37,6 +37,35 @@ jobs:
       # forward the flag to `next build`.
       - run: pnpm exec nx build web --output-style=static
 
+  e2e:
+    # Secrets are not passed to pull requests from forks, so skip them there; a
+    # skipped job counts as passed for the required check. The master push after
+    # merge still runs the suite.
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      # Clerk test (development) instance shared with the preview environment.
+      # D1/R2 stay in the runner's local Wrangler state, so no Cloudflare
+      # credentials are needed.
+      CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22.16.0
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter web exec playwright install --with-deps chromium
+      - run: pnpm run test:e2e
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: playwright-test-results
+          path: apps/web/test-results
+
   storybook:
     runs-on: ubuntu-24.04
     timeout-minutes: 20

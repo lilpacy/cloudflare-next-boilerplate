@@ -251,10 +251,12 @@ Boundary enforcement runs in `pnpm lint`, the Lefthook pre-commit hook (staged f
 the `CI` workflow (`.github/workflows/ci.yml`, on every pull request and
 `master` push: `pnpm lint`, `pnpm type-check`, `pnpm test:run`, then
 `nx build web` with a placeholder Clerk publishable key; a parallel `storybook`
-job builds and tests `packages/ui` stories and uploads `storybook-static`) and the
-preview deploy workflow on `master` pushes. The `checks` job is a required status
-check on `master` (repository ruleset "master: require CI checks"), so a PR cannot
-be merged and `master` cannot be pushed to until it passes. Plain `eslint`/IDE lint needs
+job builds and tests `packages/ui` stories and uploads `storybook-static`; a parallel
+`e2e` job runs the Playwright suite against a local dev server, see
+[E2E Testing](#e2e-testing)) and the preview deploy workflow on `master` pushes.
+The `checks` and `e2e` jobs are required status checks on `master` (repository
+ruleset "master: require CI checks"), so a PR cannot be merged and `master` cannot
+be pushed to until they pass. Plain `eslint`/IDE lint needs
 an existing Nx graph; the rule can skip if that cache is missing, so use
 `pnpm lint` as the required gate. `type-check` results are cached by Nx
 (`nx.json` `targetDefaults`); the cache key covers each project, its workspace
@@ -277,6 +279,14 @@ E2E tests require a Clerk **test instance** (`CLERK_SECRET_KEY` starting with
 `sk_test_` and `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`) in `apps/web/.env` or `apps/web/.env.local`.
 Each authenticated scenario creates a unique test user and deletes it afterward.
 The fixed admin account is retained for the read-only dashboard scenario.
+
+The `e2e` job in `.github/workflows/ci.yml` runs the local mode on every pull request
+and `master` push. It reads the repository Actions secrets `CLERK_SECRET_KEY` and
+`NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` (the preview environment's Clerk test instance);
+D1 and R2 use the runner's local Wrangler state, so it needs no Cloudflare
+credentials. Secrets are not passed to pull requests from forks, so the job is
+skipped there (a skipped job satisfies the required check); the `master` push after
+merging runs it.
 
 Page Objects live in `apps/web/e2e/pages`: `HomePage`, `TodosPage`, `EditTodoPage`,
 `ProfilePage`, and `AdminPage` own their page's locators and interactions;
@@ -350,7 +360,9 @@ pnpm run deploy
 
 Open **Actions → Deploy production → Run workflow**, select **master**, then run
 it. `.github/workflows/deploy-production.yml` accepts only manual dispatches on
-`master`; other branches skip the deploy job. It runs lint, builds the OpenNext
+`master`; other branches skip the deploy job. It first requires the `checks` and
+`e2e` jobs of the `CI` workflow to have succeeded on the `master` commit being
+deployed, so wait for CI on `master` to finish before dispatching. It runs lint, builds the OpenNext
 Worker, applies pending production D1 migrations, then deploys to `my-app`.
 A build or migration failure stops deployment. Production runs are serialized
 without cancelling a running deployment. Pushing or merging to `master` still
