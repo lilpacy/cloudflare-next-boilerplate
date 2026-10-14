@@ -19,7 +19,7 @@
     "build": "nx build web",
     "start": "nx start web",
     "lint": "nx graph --file=.nx/project-graph.json && eslint .",
-    "type-check": "tsc --noEmit && pnpm --filter @cf-next/ui type-check && pnpm --filter @cf-next/database type-check && pnpm --filter web type-check",
+    "type-check": "tsc --noEmit && nx run-many -t type-check --output-style=static",
     "test": "vitest",
     "test:run": "vitest run",
     "test:watch": "vitest --watch",
