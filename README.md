@@ -238,7 +238,9 @@ Boundary enforcement runs in `pnpm lint`, the existing Husky pre-commit hook,
 the `CI` workflow (`.github/workflows/ci.yml`, on every pull request and
 `master` push: `pnpm lint`, `pnpm type-check`, `pnpm test:run`, then
 `nx build web` with a placeholder Clerk publishable key) and the preview deploy
-workflow on `master` pushes. Plain `eslint`/IDE lint needs
+workflow on `master` pushes. The `checks` job is a required status check on
+`master` (repository ruleset "master: require CI checks"), so a PR cannot be
+merged and `master` cannot be pushed to until it passes. Plain `eslint`/IDE lint needs
 an existing Nx graph; the rule can skip if that cache is missing, so use
 `pnpm lint` as the required gate. `type-check` results are cached by Nx
 (`nx.json` `targetDefaults`); the cache key covers each project, its workspace
