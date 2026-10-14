@@ -154,6 +154,9 @@ Visit [http://localhost:3000](http://localhost:3000) to see your app!
 - `pnpm run test:ui` - Open the Vitest UI
 - `pnpm run test:coverage` - Run Vitest with coverage
 - `pnpm run test:e2e` - Run Playwright E2E tests
+- `pnpm --filter @cf-next/ui run storybook` - Start Storybook for `packages/ui` on port 6006
+- `pnpm --filter @cf-next/ui run storybook:build` - Build the static Storybook into `packages/ui/storybook-static` (Nx-cached: `nx run ui:storybook:build`)
+- `pnpm --filter @cf-next/ui run storybook:test` - Render every story in headless Chromium and fail on a11y violations (needs `pnpm --filter @cf-next/ui exec playwright install chromium` once)
 
 ### Database (D1)
 - `pnpm run db:create` - Create production database
@@ -207,7 +210,11 @@ them through `transpilePackages`. Neither has an independent build/watch process
 
 - `@cf-next/ui` (`packages/ui`): presentation-only React components. The homepage
   uses its `Card`, and the Todo and profile forms use its `PrimaryButton`,
-  `TextInput` and `Textarea`.
+  `TextInput` and `Textarea`. Each component has a `*.stories.tsx` next to it;
+  `packages/ui/.storybook/` holds the Storybook config (`@storybook/react-vite`,
+  docs, a11y and Vitest addons) and a standalone Tailwind entry (`preview.css`),
+  so stories do not load `apps/web`'s SCSS. `packages/ui/vitest.config.ts` runs
+  the stories in Vitest browser mode, separate from the root happy-dom config.
 - `@cf-next/database` (`packages/database`): drizzle table definitions
   (`packages/database/src/modules/<name>/schema.ts`, registered in `packages/database/src/schema.ts`), `createDb(d1)`
   and the `migrations/` directory that `wrangler d1 migrations apply` reads. It
@@ -237,8 +244,9 @@ SCSS entry. Sass and the existing styling remain unchanged.
 Boundary enforcement runs in `pnpm lint`, the existing Husky pre-commit hook,
 the `CI` workflow (`.github/workflows/ci.yml`, on every pull request and
 `master` push: `pnpm lint`, `pnpm type-check`, `pnpm test:run`, then
-`nx build web` with a placeholder Clerk publishable key) and the preview deploy
-workflow on `master` pushes. Plain `eslint`/IDE lint needs
+`nx build web` with a placeholder Clerk publishable key; a parallel `storybook`
+job builds and tests `packages/ui` stories and uploads `storybook-static`) and the
+preview deploy workflow on `master` pushes. Plain `eslint`/IDE lint needs
 an existing Nx graph; the rule can skip if that cache is missing, so use
 `pnpm lint` as the required gate. `type-check` results are cached by Nx
 (`nx.json` `targetDefaults`); the cache key covers each project, its workspace

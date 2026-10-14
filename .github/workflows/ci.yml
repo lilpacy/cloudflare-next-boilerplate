@@ -36,3 +36,24 @@ jobs:
       # so call nx directly instead of `pnpm run build -- ...`, which would
       # forward the flag to `next build`.
       - run: pnpm exec nx build web --output-style=static
+
+  storybook:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22.16.0
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @cf-next/ui exec playwright install --with-deps chromium
+      - run: pnpm exec nx run ui:storybook:build --output-style=static
+      - run: pnpm exec nx run ui:storybook:test --output-style=static
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: storybook-static
+          path: packages/ui/storybook-static
+          if-no-files-found: error

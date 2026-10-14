@@ -1,6 +1,7 @@
 import nextVitals from "eslint-config-next/core-web-vitals";
 import nextTypescript from "eslint-config-next/typescript";
 import nxPlugin from "@nx/eslint-plugin";
+import storybook from "eslint-plugin-storybook";
 
 const eslintConfig = [
   {
@@ -12,12 +13,14 @@ const eslintConfig = [
       "**/dist/**",
       "**/.turbo/**",
       "**/.nx/**",
+      "**/storybook-static/**",
       "next-env.d.ts",
       "cloudflare-env.d.ts",
     ],
   },
   ...nextVitals,
   ...nextTypescript,
+  ...storybook.configs["flat/recommended"],
   {
     files: ["e2e/fixtures/**/*.ts"],
     // Playwright's use callback is a lifecycle boundary, not React.use.

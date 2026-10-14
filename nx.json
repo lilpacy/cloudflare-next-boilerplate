@@ -1,12 +1,39 @@
 {
   "$schema": "./node_modules/nx/schemas/nx-schema.json",
   "namedInputs": {
-    "default": ["{projectRoot}/**/*"]
+    "default": [
+      "{projectRoot}/**/*"
+    ],
+    "noTests": [
+      "default",
+      "!{projectRoot}/**/*.test.(ts|tsx)"
+    ]
   },
   "targetDefaults": {
     "type-check": {
       "cache": true,
-      "inputs": ["default", "^default", "{workspaceRoot}/tsconfig.base.json"]
+      "inputs": [
+        "default",
+        "^default",
+        "{workspaceRoot}/tsconfig.base.json"
+      ]
+    },
+    "storybook:build": {
+      "cache": true,
+      "inputs": [
+        "noTests",
+        "^default"
+      ],
+      "outputs": [
+        "{projectRoot}/storybook-static"
+      ]
+    },
+    "storybook:test": {
+      "cache": true,
+      "inputs": [
+        "default",
+        "^default"
+      ]
     }
   }
 }

@@ -1,0 +1,3 @@
+/* Standalone Tailwind entry for stories; apps/web's globals.scss is not loaded here. */
+@import "tailwindcss";
+@source "../src";

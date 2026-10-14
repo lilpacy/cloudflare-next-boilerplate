@@ -121,6 +121,7 @@ Directories only; file lists go stale.
 | `packages/database/src/db.ts` | (outside) | `createDb(d1)`: opens the database from a D1 binding without OpenNext, for any Worker |
 | `packages/database/migrations/` | (outside) | drizzle-kit output (`pnpm run db:generate`); `wrangler.jsonc` `migrations_dir` points here. `packages/database/test/migrations.test.ts` fails when schema and migrations drift |
 | `packages/ui/` | (outside) | Presentation-only components; may not import app code (Nx boundary) |
+| `packages/ui/.storybook/`, `packages/ui/src/*.stories.tsx` | (outside) | Storybook config and one stories file per component; `packages/ui/vitest.config.ts` runs them as render + a11y tests in Chromium |
 
 ## Where does new code go?
 
