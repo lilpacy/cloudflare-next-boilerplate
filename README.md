@@ -32,11 +32,11 @@ cd cloudflare-next-boilerplate
 pnpm install
 ```
 
-`pnpm install` also installs the Git hooks from `lefthook.yml` through lefthook's
-postinstall. The pre-commit hook runs `pnpm type-check` and ESLint on the staged
+`pnpm install` also installs the Git hooks from `lefthook.yml` (root `prepare`
+script). The pre-commit hook runs `pnpm type-check` and ESLint on the staged
 files in parallel; CI runs the full checks. Skip it once with `LEFTHOOK=0 git commit`.
-A clone that used the former Husky hook still has `core.hooksPath` set to
-`.husky/_`; run `pnpm exec lefthook install --reset-hooks-path` once.
+In a clone that used the former Husky hook, `core.hooksPath` still points to
+`.husky/_` and `pnpm install` fails; run `pnpm exec lefthook install --reset-hooks-path` once.
 
 ### 2. Set Up Clerk Authentication
 

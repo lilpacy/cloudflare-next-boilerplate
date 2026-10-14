@@ -47,6 +47,7 @@
     "storage:create:cache": "pnpm --filter web run storage:create:cache",
     "storage:create:preview": "pnpm --filter web run storage:create:preview",
     "storage:create:cache:preview": "pnpm --filter web run storage:create:cache:preview",
+    "prepare": "lefthook install",
     "graph": "nx graph"
   },
   "devDependencies": {
@@ -81,11 +82,13 @@
       "@tailwindcss/oxide",
       "better-sqlite3",
       "esbuild",
-      "lefthook",
       "sharp",
       "unrs-resolver",
       "workerd",
       "nx"
+    ],
+    "ignoredBuiltDependencies": [
+      "lefthook"
     ]
   }
 }
