@@ -284,8 +284,9 @@ The `e2e` job in `.github/workflows/ci.yml` runs the local mode on every pull re
 and `master` push. It reads the repository Actions secrets `CLERK_SECRET_KEY` and
 `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` (the preview environment's Clerk test instance);
 D1 and R2 use the runner's local Wrangler state, so it needs no Cloudflare
-credentials. Secrets are not passed to pull requests from forks, so the job fails
-there.
+credentials. Secrets are not passed to pull requests from forks, so the job is
+skipped there (a skipped job satisfies the required check); the `master` push after
+merging runs it.
 
 Page Objects live in `apps/web/e2e/pages`: `HomePage`, `TodosPage`, `EditTodoPage`,
 `ProfilePage`, and `AdminPage` own their page's locators and interactions;

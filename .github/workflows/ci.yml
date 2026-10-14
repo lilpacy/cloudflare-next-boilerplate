@@ -38,13 +38,16 @@ jobs:
       - run: pnpm exec nx build web --output-style=static
 
   e2e:
+    # Secrets are not passed to pull requests from forks, so skip them there; a
+    # skipped job counts as passed for the required check. The master push after
+    # merge still runs the suite.
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:
       # Clerk test (development) instance shared with the preview environment.
       # D1/R2 stay in the runner's local Wrangler state, so no Cloudflare
-      # credentials are needed. Secrets are not passed to fork pull requests,
-      # so this job fails there at global setup.
+      # credentials are needed.
       CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
       NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
     steps:
