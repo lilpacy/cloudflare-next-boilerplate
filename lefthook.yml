@@ -1,0 +1,11 @@
+# Git hooks, installed by lefthook's postinstall (`pnpm install`).
+# Keep pre-commit light: ESLint only sees staged files; CI runs the full checks.
+pre-commit:
+  parallel: true
+  commands:
+    type-check:
+      run: pnpm run type-check
+    lint:
+      glob: "*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}"
+      # The Nx boundary rule reads the cached project graph, so refresh it first (see `pnpm lint`).
+      run: pnpm exec nx graph --file=.nx/project-graph.json && pnpm exec eslint --no-warn-ignored {staged_files}

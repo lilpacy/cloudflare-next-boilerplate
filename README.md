@@ -32,6 +32,12 @@ cd cloudflare-next-boilerplate
 pnpm install
 ```
 
+`pnpm install` also installs the Git hooks from `lefthook.yml` through lefthook's
+postinstall. The pre-commit hook runs `pnpm type-check` and ESLint on the staged
+files in parallel; CI runs the full checks. Skip it once with `LEFTHOOK=0 git commit`.
+A clone that used the former Husky hook still has `core.hooksPath` set to
+`.husky/_`; run `pnpm exec lefthook install --reset-hooks-path` once.
+
 ### 2. Set Up Clerk Authentication
 
 1. Create a free account at [clerk.com](https://clerk.com)
@@ -241,7 +247,7 @@ cycles within one project are not checked by this project-boundary rule
 Tailwind explicitly scans `packages/ui/src` through `@source` in the existing
 SCSS entry. Sass and the existing styling remain unchanged.
 
-Boundary enforcement runs in `pnpm lint`, the existing Husky pre-commit hook,
+Boundary enforcement runs in `pnpm lint`, the Lefthook pre-commit hook (staged files only),
 the `CI` workflow (`.github/workflows/ci.yml`, on every pull request and
 `master` push: `pnpm lint`, `pnpm type-check`, `pnpm test:run`, then
 `nx build web` with a placeholder Clerk publishable key; a parallel `storybook`

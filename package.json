@@ -47,7 +47,6 @@
     "storage:create:cache": "pnpm --filter web run storage:create:cache",
     "storage:create:preview": "pnpm --filter web run storage:create:preview",
     "storage:create:cache:preview": "pnpm --filter web run storage:create:cache:preview",
-    "prepare": "husky",
     "graph": "nx graph"
   },
   "devDependencies": {
@@ -66,7 +65,7 @@
     "eslint-config-next": "16.3.8",
     "eslint-plugin-storybook": "10.6.2",
     "happy-dom": "^20.3.0",
-    "husky": "^9.1.7",
+    "lefthook": "^2.2.2",
     "nx": "23.3.0",
     "react": "19.1.9",
     "react-dom": "19.1.9",
@@ -82,6 +81,7 @@
       "@tailwindcss/oxide",
       "better-sqlite3",
       "esbuild",
+      "lefthook",
       "sharp",
       "unrs-resolver",
       "workerd",
