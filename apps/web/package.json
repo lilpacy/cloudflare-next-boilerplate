@@ -45,7 +45,7 @@
   "devDependencies": {
     "@clerk/testing": "^2.1.0",
     "@tailwindcss/postcss": "^4.3.3",
-    "@types/node": "^20.19.18",
+    "@types/node": "^22.20.5",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "sass": "^1.100.0",
